@@ -1,0 +1,1118 @@
+/* ============================================================
+   home-redesign.css  —  Island Manuscript home page
+   Layered on top of style.css; only affects the new home.
+   ============================================================ */
+
+/* ── Palette overrides exposed via Tweaks ─────────────────── */
+.home-redesign {
+  /* Default = Ocean Dusk */
+  --hr-paper:        #f7f0e1;
+  --hr-paper-2:      #ede3cd;
+  --hr-paper-3:      #e3d6b8;
+  --hr-ink:          #1f1810;
+  --hr-ink-soft:     #4a3f30;
+  --hr-ink-muted:    #8a7a62;
+  --hr-sea:          #0f2a44;
+  --hr-sea-deep:     #081a2c;
+  --hr-sea-mid:      #1d4a6f;
+  --hr-accent:       #c45f22;   /* coral */
+  --hr-accent-dark:  #9f4814;
+  --hr-gold:         #b8892a;
+  --hr-gold-light:   #d9a93e;
+  --hr-leaf:         #2f5a3c;   /* deep palm */
+}
+
+.home-redesign[data-palette="lagoon"] {
+  --hr-paper:        #f4ede0;
+  --hr-paper-2:      #e8dec6;
+  --hr-paper-3:      #d8c9a4;
+  --hr-ink:          #14201f;
+  --hr-ink-soft:     #2f4842;
+  --hr-ink-muted:    #6e7e76;
+  --hr-sea:          #134e4a;
+  --hr-sea-deep:     #0a322f;
+  --hr-sea-mid:      #1d6b65;
+  --hr-accent:       #d96a3a;
+  --hr-accent-dark:  #a84a1f;
+  --hr-gold:         #c0902a;
+  --hr-gold-light:   #e0b246;
+  --hr-leaf:         #2d4f3c;
+}
+
+.home-redesign[data-palette="manuscript"] {
+  --hr-paper:        #f4e9d1;
+  --hr-paper-2:      #e8d8b3;
+  --hr-paper-3:      #d6bf8c;
+  --hr-ink:          #2a1d10;
+  --hr-ink-soft:     #5a4326;
+  --hr-ink-muted:    #97825e;
+  --hr-sea:          #3a2412;            /* deep sepia ink */
+  --hr-sea-deep:     #1f120a;
+  --hr-sea-mid:      #6a4022;
+  --hr-accent:       #b8421a;
+  --hr-accent-dark:  #862e0e;
+  --hr-gold:         #a87819;
+  --hr-gold-light:   #d2972a;
+  --hr-leaf:         #5a4218;
+}
+
+/* ============================================================
+   PALETTE MAPPING — remap the legacy --color-* tokens onto each
+   palette so existing cards/buttons/headers shift automatically
+   across every page when the user changes the palette.
+   ============================================================ */
+.home-redesign {
+  --color-parchment:    var(--hr-paper);
+  --color-parchment-2:  var(--hr-paper-2);
+  --color-border-soft:  color-mix(in oklab, var(--hr-gold) 18%, var(--hr-paper-3));
+  --color-ocean:        var(--hr-sea);
+  --color-ocean-deep:   var(--hr-sea-deep);
+  --color-coral:        var(--hr-accent);
+  --color-coral-dark:   var(--hr-accent-dark);
+  --color-gold:         var(--hr-gold);
+  --color-gold-text:    var(--hr-gold);
+  --color-gold-light:   color-mix(in oklab, var(--hr-gold) 22%, var(--hr-paper));
+  --color-teal:         var(--hr-sea-mid);
+  --color-teal-light:   color-mix(in oklab, var(--hr-sea-mid) 12%, var(--hr-paper));
+  --color-ink:          var(--hr-ink);
+  --color-ink-soft:     var(--hr-ink-soft);
+  --color-ink-muted:    var(--hr-ink-muted);
+  --color-border:       color-mix(in oklab, var(--hr-gold) 28%, transparent);
+}
+.home-redesign {
+  background-color: var(--hr-paper);
+  color: var(--hr-ink);
+}
+
+/* ============================================================
+   PAGE HERO — compact parchment hero for non-home pages
+   (books, characters, themes, about, cart, book-details)
+   ============================================================ */
+.hr-page-hero {
+  position: relative;
+  padding: clamp(2.8rem, 7vh, 4.2rem) 5% clamp(3rem, 7vh, 4.5rem);
+  background: var(--hr-paper);
+  overflow: hidden;
+  isolation: isolate;
+}
+.hr-page-hero--slim {
+  padding: clamp(1.6rem, 4vh, 2.4rem) 5% clamp(2rem, 5vh, 2.8rem);
+}
+.hr-page-hero--slim .hr-page-hero__inner .hr-eyebrow { margin: 1rem 0 0.5rem; }
+.hr-page-hero .hr-hero__atmosphere { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.hr-page-hero .hr-hero__atmosphere::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 36%;
+  background: linear-gradient(to bottom,
+    color-mix(in oklab, var(--hr-sea-deep) 14%, transparent),
+    transparent);
+}
+.hr-page-hero .hr-hero__atmosphere::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40%;
+  background: linear-gradient(to top,
+    color-mix(in oklab, var(--hr-paper-3) 60%, transparent),
+    transparent);
+}
+
+.hr-page-hero .hr-corner { width: clamp(160px, 20vw, 280px); }
+.hr-page-hero .hr-watermark {
+  width: clamp(320px, 48vw, 520px);
+  top: 58%;
+  opacity: calc(var(--hr-motif-opacity, 0.13) * 0.55);
+}
+
+.hr-page-hero__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hr-page-hero .hr-title {
+  font-size: clamp(2.1rem, 4.8vw, 3.6rem);
+  letter-spacing: -0.012em;
+}
+.hr-page-hero .hr-sub {
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  margin-top: 1.1rem;
+}
+
+/* ============================================================
+   GENERIC: refresh primary buttons, count badges, filter pills,
+   stat pills, ornament rules to use new tokens cleanly
+   ============================================================ */
+.home-redesign .btn-primary {
+  background: var(--hr-sea-deep);
+  color: var(--hr-paper);
+  border: 1px solid color-mix(in oklab, var(--hr-gold) 40%, var(--hr-sea-deep));
+  border-radius: 2px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  padding: 0.85rem 1.7rem;
+}
+.home-redesign .btn-primary:hover {
+  background: var(--hr-accent-dark);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25);
+}
+
+.home-redesign .filter-btn {
+  background: var(--hr-paper);
+  border: 1px solid color-mix(in oklab, var(--hr-gold) 32%, var(--hr-paper-3));
+  color: var(--hr-ink-soft);
+}
+.home-redesign .filter-btn:hover {
+  border-color: var(--hr-accent);
+  color: var(--hr-accent);
+  background: color-mix(in oklab, var(--hr-accent) 8%, var(--hr-paper));
+}
+.home-redesign .filter-btn.active {
+  background: var(--hr-sea-deep);
+  border-color: var(--hr-sea-deep);
+  color: var(--hr-paper);
+}
+
+.home-redesign .stat-pill {
+  background: var(--hr-paper);
+  border: 1px solid color-mix(in oklab, var(--hr-gold) 28%, var(--hr-paper-3));
+  color: var(--hr-ink-soft);
+}
+.home-redesign .stat-pill strong { color: var(--hr-sea-deep); }
+
+.home-redesign .count-badge {
+  color: var(--hr-ink-muted);
+  font-family: var(--font-ui);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.home-redesign .ornament { color: var(--hr-gold); }
+
+/* Book / character cards already use var(--color-*) — palette remap above handles them.
+   A few subtle tweaks to lift them into the new aesthetic: */
+.home-redesign .book-card,
+.home-redesign .char-card,
+.home-redesign .featured-card {
+  background: var(--hr-paper);
+  border: 1px solid color-mix(in oklab, var(--hr-gold) 22%, var(--hr-paper-3));
+  border-radius: 4px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 8px 20px rgba(20,12,4,0.08);
+}
+.home-redesign .book-card:hover,
+.home-redesign .char-card:hover,
+.home-redesign .featured-card:hover {
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 18px 36px rgba(20,12,4,0.18);
+  border-color: color-mix(in oklab, var(--hr-gold) 50%, var(--hr-paper-3));
+}
+
+.home-redesign .book-cover-wrap { background: var(--hr-paper-2); }
+.home-redesign .book-type-badge {
+  background: color-mix(in oklab, var(--hr-sea-mid) 10%, var(--hr-paper));
+  color: var(--hr-sea-deep);
+  border: 1px solid color-mix(in oklab, var(--hr-sea-mid) 30%, transparent);
+  letter-spacing: 0.12em;
+}
+.home-redesign .book-type-badge--hardcover {
+  background: color-mix(in oklab, var(--hr-accent) 10%, var(--hr-paper));
+  color: var(--hr-accent-dark);
+  border-color: color-mix(in oklab, var(--hr-accent) 30%, transparent);
+}
+.home-redesign .btn-view-story {
+  background: var(--hr-sea-deep);
+  border-radius: 2px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+.home-redesign .btn-view-story:hover { background: var(--hr-accent-dark); }
+.home-redesign .ribbon { background: var(--hr-accent); }
+
+/* Themes panel + chips */
+.home-redesign .detail-panel { background: var(--hr-paper); border-color: color-mix(in oklab, var(--hr-gold) 24%, var(--hr-paper-3)); }
+.home-redesign .detail-panel-bar { background: linear-gradient(to right, var(--hr-sea-deep), var(--hr-gold)); }
+.home-redesign .detail-cat-label { color: var(--hr-accent); }
+.home-redesign .detail-title { color: var(--hr-sea-deep); }
+.home-redesign .theme-tag {
+  background: var(--hr-paper);
+  border-color: color-mix(in oklab, var(--hr-gold) 22%, var(--hr-paper-3));
+}
+.home-redesign .theme-tag:hover {
+  border-color: var(--hr-accent);
+  color: var(--hr-accent);
+  background: color-mix(in oklab, var(--hr-accent) 6%, var(--hr-paper));
+}
+.home-redesign .theme-tag.active {
+  background: var(--hr-sea-deep);
+  border-color: var(--hr-sea-deep);
+}
+.home-redesign .category-heading span {
+  background: var(--hr-sea-deep);
+  color: var(--hr-paper);
+}
+
+/* Site header in new palette */
+.home-redesign .site-header {
+  background: var(--hr-sea-deep);
+  border-bottom: 1px solid color-mix(in oklab, var(--hr-gold) 30%, transparent);
+}
+.home-redesign .site-footer { background: var(--hr-sea-deep); }
+
+/* About page highlight + ornament */
+.home-redesign .about-highlight {
+  background: color-mix(in oklab, var(--hr-gold) 14%, var(--hr-paper));
+  border-left-color: var(--hr-gold);
+  color: var(--hr-ink);
+}
+
+/* Book details */
+.home-redesign .book-badge-pill {
+  background: color-mix(in oklab, var(--hr-sea-mid) 12%, var(--hr-paper));
+  color: var(--hr-sea-deep);
+  border: 1px solid color-mix(in oklab, var(--hr-sea-mid) 30%, transparent);
+}
+.home-redesign .book-title { color: var(--hr-sea-deep); }
+.home-redesign .price-highlight { color: var(--hr-accent); }
+.home-redesign .book-specs { background: color-mix(in oklab, var(--hr-paper-2) 70%, var(--hr-paper)); border-color: color-mix(in oklab, var(--hr-gold) 18%, var(--hr-paper-3)); }
+.home-redesign .related-characters { background: color-mix(in oklab, var(--hr-paper-2) 70%, var(--hr-paper)); }
+.home-redesign .char-chip { background: var(--hr-paper); border-color: color-mix(in oklab, var(--hr-gold) 22%, var(--hr-paper-3)); color: var(--hr-sea-deep); }
+.home-redesign .theme-chip { background: color-mix(in oklab, var(--hr-gold) 14%, var(--hr-paper)); border-color: color-mix(in oklab, var(--hr-gold) 28%, transparent); }
+.home-redesign .theme-chip__cat { color: var(--hr-gold); }
+
+/* Books hero — kill old dark navy ellipse */
+.home-redesign .books-hero,
+.home-redesign .chars-hero,
+.home-redesign .themes-hero,
+.home-redesign .about-hero,
+.home-redesign .cart-hero { display: none !important; }
+
+/* ── Motif intensity ──────────────────────────────────────── */
+.home-redesign[data-motifs="subtle"]  { --hr-motif-opacity: 0.07; --hr-motif-scale: 0.85; }
+.home-redesign[data-motifs="medium"]  { --hr-motif-opacity: 0.13; --hr-motif-scale: 1; }
+.home-redesign[data-motifs="bold"]    { --hr-motif-opacity: 0.22; --hr-motif-scale: 1.18; }
+
+/* ── Base ─────────────────────────────────────────────────── */
+.home-redesign {
+  background: var(--hr-paper);
+  color: var(--hr-ink);
+  font-family: var(--font-body);
+}
+
+/* Subtle paper grain — applied once at body level */
+.home-redesign::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(rgba(122,85,30,0.06) 1px, transparent 1px),
+    radial-gradient(rgba(40,30,15,0.04) 1px, transparent 1px);
+  background-size: 3px 3px, 7px 7px;
+  background-position: 0 0, 1px 2px;
+  mix-blend-mode: multiply;
+  z-index: 0;
+  opacity: 0.7;
+}
+.home-redesign > * { position: relative; z-index: 1; }
+
+/* These elements are appended directly to <body> and must NOT be
+   affected by the rule above — they rely on position:fixed or are
+   zero-size utilities (SVG sprite, tweaks panel, modal backdrops). */
+.home-redesign > #gh-sprite                    { position: absolute; width: 0; height: 0; }
+.home-redesign > .hr-tweaks                    { position: fixed; }
+.home-redesign > .feedback-lightbox-backdrop   { position: fixed; z-index: 500; }
+.home-redesign > .char-modal-backdrop          { position: fixed; z-index: 200; }
+
+/* ============================================================
+   HERO — Island Manuscript
+   ============================================================ */
+.hr-hero {
+  position: relative;
+  padding: clamp(3rem, 8vh, 5.5rem) 5% clamp(3.5rem, 9vh, 6rem);
+  background: var(--hr-paper);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Layered atmosphere: faint sea-band at top, deep heron watermark center */
+.hr-hero__atmosphere {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0;
+}
+.hr-hero__atmosphere::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 38%;
+  background: linear-gradient(to bottom,
+    color-mix(in oklab, var(--hr-sea-deep) 18%, transparent),
+    transparent);
+}
+.hr-hero__atmosphere::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0; height: 40%;
+  background: linear-gradient(to top,
+    color-mix(in oklab, var(--hr-paper-3) 70%, transparent),
+    transparent);
+}
+
+/* Corner palm fronds */
+.hr-corner {
+  position: absolute;
+  width: clamp(180px, 22vw, 320px);
+  opacity: var(--hr-motif-opacity, 0.13);
+  color: var(--hr-leaf);
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(var(--hr-motif-scale, 1));
+}
+.hr-corner--tl { top: -2%; left: -3%; transform: scale(var(--hr-motif-scale, 1)) rotate(-12deg); }
+.hr-corner--tr { top: -4%; right: -3%; transform: scale(var(--hr-motif-scale, 1)) scaleX(-1) rotate(-12deg); }
+.hr-corner--bl { bottom: -6%; left: -4%; transform: scale(var(--hr-motif-scale, 1)) rotate(180deg) scaleX(-1); }
+.hr-corner--br { bottom: -6%; right: -4%; transform: scale(var(--hr-motif-scale, 1)) rotate(180deg); }
+
+/* Heron watermark — barely there */
+.hr-watermark {
+  position: absolute;
+  left: 50%; top: 56%;
+  width: clamp(420px, 60vw, 760px);
+  transform: translate(-50%, -50%);
+  opacity: calc(var(--hr-motif-opacity, 0.13) * 0.7);
+  color: var(--hr-sea-deep);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Inner content */
+.hr-hero__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 980px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* Ornamental rule with central glyph */
+.hr-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  color: var(--hr-gold);
+}
+.hr-rule__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, currentColor 40%, currentColor 60%, transparent);
+  opacity: 0.65;
+}
+.hr-rule__glyph {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+}
+
+.hr-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--hr-gold);
+  margin: 1rem 0 1.75rem;
+  display: block;
+}
+
+.hr-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.6rem, 7.2vw, 5.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.018em;
+  color: var(--hr-sea-deep);
+  margin: 0;
+}
+.hr-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--hr-accent);
+  display: block;
+  margin-top: 0.18em;
+}
+
+.hr-sub {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  color: var(--hr-ink-soft);
+  margin: 1.6rem auto 0;
+  max-width: 560px;
+  line-height: 1.55;
+}
+
+/* ── Refined book collage — "specimen plates" ── */
+.hr-collage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(0.5rem, 2vw, 1.6rem);
+  margin: clamp(2rem, 4.5vh, 3.25rem) auto 0;
+  max-width: 620px;
+  width: 100%;
+}
+.hr-collage__plate {
+  position: relative;
+  width: 30%;
+  max-width: 200px;
+  aspect-ratio: 3/4;
+  border-radius: 3px;
+  background: var(--hr-paper-2);
+  overflow: visible;
+  transition: transform 0.5s cubic-bezier(0.34, 1.26, 0.64, 1);
+}
+.hr-collage__plate::after {
+  /* gold pin/tack at top */
+  content: "";
+  position: absolute;
+  top: -6px; left: 50%;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--hr-gold-light), var(--hr-gold) 55%, var(--hr-accent-dark) 100%);
+  transform: translateX(-50%);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 4;
+}
+.hr-collage__plate img,
+.hr-collage__plate .hr-collage__inner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6) inset,
+    0 16px 40px rgba(20,12,4,0.32),
+    0 4px 10px rgba(20,12,4,0.18);
+  border: 1px solid color-mix(in oklab, var(--hr-gold) 35%, transparent);
+  transition: opacity 0.45s ease;
+}
+.hr-collage__plate:nth-child(1) { transform: rotate(-5deg) translateY(14px); width: 26%; }
+.hr-collage__plate:nth-child(2) { z-index: 2; transform: translateY(-6px); width: 33%; }
+.hr-collage__plate:nth-child(3) { transform: rotate(5deg) translateY(14px); width: 26%; }
+
+/* Caption tag under each plate */
+.hr-collage__tag {
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--hr-ink-muted);
+  white-space: nowrap;
+}
+
+/* Shimmer placeholders */
+.hr-collage__plate.is-loading .hr-collage__inner {
+  background: linear-gradient(90deg,
+    var(--hr-paper-2) 25%,
+    var(--hr-paper-3) 50%,
+    var(--hr-paper-2) 75%);
+  background-size: 200% 100%;
+  animation: hr-shimmer 1.6s linear infinite;
+  border: 1px solid var(--hr-paper-3);
+}
+@keyframes hr-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* CTA */
+.hr-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: clamp(3rem, 5.5vh, 4rem) auto 0;
+  padding: 0.95rem 1.85rem 0.95rem 2rem;
+  background: var(--hr-sea-deep);
+  color: var(--hr-paper);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 2px;
+  border: 1px solid color-mix(in oklab, var(--hr-gold) 40%, var(--hr-sea-deep));
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.05),
+    0 14px 30px rgba(8,26,44,0.35);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+  position: relative;
+}
+.hr-cta:hover {
+  background: var(--hr-accent-dark);
+  color: var(--hr-paper);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(159,72,20,0.45);
+}
+.hr-cta__arrow { display: inline-block; transition: transform 0.2s; }
+.hr-cta:hover .hr-cta__arrow { transform: translateX(3px); }
+
+/* Wave divider at bottom of hero */
+.hr-wave {
+  position: absolute;
+  left: -2%; right: -2%; bottom: -1px;
+  width: 104%;
+  height: clamp(40px, 6vw, 70px);
+  color: var(--hr-paper);
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+
+/* ============================================================
+   HERO VARIANT: SHELF — "specimen shelf"
+   covers stand upright in a row on a thin ledge
+   ============================================================ */
+.home-redesign[data-hero="shelf"] .hr-collage {
+  max-width: 760px;
+  align-items: flex-end;
+  gap: clamp(1rem, 3vw, 2.2rem);
+  padding-bottom: 28px;
+  position: relative;
+}
+.home-redesign[data-hero="shelf"] .hr-collage::before {
+  /* the shelf line */
+  content: "";
+  position: absolute;
+  left: 4%; right: 4%;
+  bottom: 14px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--hr-gold) 15%, var(--hr-gold) 85%, transparent);
+  opacity: 0.55;
+}
+.home-redesign[data-hero="shelf"] .hr-collage::after {
+  /* shelf shadow */
+  content: "";
+  position: absolute;
+  left: 8%; right: 8%;
+  bottom: 8px;
+  height: 8px;
+  background: radial-gradient(ellipse at center, rgba(20,12,4,0.18), transparent 70%);
+  filter: blur(2px);
+}
+.home-redesign[data-hero="shelf"] .hr-collage__plate {
+  transform: none !important;
+  width: 30%;
+  max-width: 200px;
+}
+.home-redesign[data-hero="shelf"] .hr-collage__plate::after {
+  /* hide pin */
+  display: none;
+}
+.home-redesign[data-hero="shelf"] .hr-collage__plate img,
+.home-redesign[data-hero="shelf"] .hr-collage__plate .hr-collage__inner {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6) inset,
+    0 22px 28px -14px rgba(20,12,4,0.45),
+    0 8px 14px -4px rgba(20,12,4,0.22);
+}
+
+/* ============================================================
+   HERO VARIANT: EDITORIAL — split layout, single feature book
+   ============================================================ */
+.home-redesign[data-hero="editorial"] .hr-hero__inner {
+  max-width: 1180px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: center;
+  text-align: left;
+}
+.home-redesign[data-hero="editorial"] .hr-hero__inner > * { grid-column: 1; }
+.home-redesign[data-hero="editorial"] .hr-rule { margin: 0 0 0 0; max-width: 220px; }
+.home-redesign[data-hero="editorial"] .hr-rule__line:last-child { display: none; }
+.home-redesign[data-hero="editorial"] .hr-title { text-align: left; }
+.home-redesign[data-hero="editorial"] .hr-title em { display: inline; }
+.home-redesign[data-hero="editorial"] .hr-sub {
+  margin: 1.4rem 0 0;
+  max-width: 460px;
+  text-align: left;
+}
+.home-redesign[data-hero="editorial"] .hr-cta {
+  margin: 2.5rem 0 0;
+}
+.home-redesign[data-hero="editorial"] .hr-collage {
+  grid-column: 2;
+  grid-row: 1 / span 6;
+  max-width: 460px;
+  align-self: center;
+  justify-self: end;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  padding: 0;
+}
+.home-redesign[data-hero="editorial"] .hr-collage::before {
+  /* large feature frame backdrop */
+  content: "";
+  position: absolute;
+  inset: -8% -5%;
+  background:
+    radial-gradient(ellipse at 50% 60%,
+      color-mix(in oklab, var(--hr-gold) 16%, transparent),
+      transparent 65%);
+  z-index: 0;
+}
+.home-redesign[data-hero="editorial"] .hr-collage__plate {
+  position: absolute;
+  transform: none;
+  width: 76%;
+  max-width: 340px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.home-redesign[data-hero="editorial"] .hr-collage__plate:nth-child(1),
+.home-redesign[data-hero="editorial"] .hr-collage__plate:nth-child(3) {
+  display: none;
+}
+.home-redesign[data-hero="editorial"] .hr-collage__plate:nth-child(2) {
+  position: relative;
+  left: auto;
+  transform: rotate(-2deg);
+  width: 100%;
+  max-width: 360px;
+}
+.home-redesign[data-hero="editorial"] .hr-collage__plate:nth-child(2)::after {
+  /* pin moves to top-left for a more "displayed artwork" feel */
+  top: -10px; left: 18%;
+  width: 14px; height: 14px;
+}
+.home-redesign[data-hero="editorial"] .hr-collage__plate:nth-child(2) img,
+.home-redesign[data-hero="editorial"] .hr-collage__plate:nth-child(2) .hr-collage__inner {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6) inset,
+    0 32px 60px rgba(20,12,4,0.38),
+    0 10px 22px rgba(20,12,4,0.2);
+}
+
+/* "Featured tale" caption mark for editorial variant */
+.home-redesign[data-hero="editorial"] .hr-collage::after {
+  content: "Featured Tale";
+  position: absolute;
+  bottom: -2.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-ui);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--hr-gold);
+  white-space: nowrap;
+}
+
+@media (max-width: 820px) {
+  .home-redesign[data-hero="editorial"] .hr-hero__inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .home-redesign[data-hero="editorial"] .hr-rule { margin: 0 auto; max-width: 360px; }
+  .home-redesign[data-hero="editorial"] .hr-rule__line:last-child { display: block; }
+  .home-redesign[data-hero="editorial"] .hr-title { text-align: center; }
+  .home-redesign[data-hero="editorial"] .hr-sub { margin: 1.4rem auto 0; text-align: center; }
+  .home-redesign[data-hero="editorial"] .hr-cta { margin: 2rem auto 0; }
+  .home-redesign[data-hero="editorial"] .hr-collage {
+    grid-column: 1; grid-row: auto;
+    justify-self: center;
+    margin: 2rem auto 0;
+  }
+}
+
+/* ============================================================
+   MANIFESTO — The Heart of the Stories
+   ============================================================ */
+.hr-manifesto {
+  position: relative;
+  background: linear-gradient(180deg,
+    var(--hr-paper) 0%,
+    color-mix(in oklab, var(--hr-paper-2) 90%, var(--hr-paper)) 100%);
+  padding: clamp(4rem, 10vh, 7rem) 5%;
+  overflow: hidden;
+}
+
+/* Decorative side leaves */
+.hr-manifesto__leaf {
+  position: absolute;
+  width: clamp(180px, 22vw, 280px);
+  opacity: calc(var(--hr-motif-opacity, 0.13) * 1.1);
+  color: var(--hr-leaf);
+  pointer-events: none;
+}
+.hr-manifesto__leaf--l { left: -3%; top: 8%; transform: rotate(-22deg); }
+.hr-manifesto__leaf--r { right: -3%; bottom: 6%; transform: rotate(160deg); }
+
+.hr-manifesto__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hr-eyebrow--ink { color: var(--hr-gold); }
+
+.hr-section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.4vw, 3.2rem);
+  font-weight: 500;
+  color: var(--hr-sea-deep);
+  line-height: 1.05;
+  letter-spacing: -0.012em;
+  margin: 0.85rem 0 0;
+}
+
+.hr-section-title em {
+  font-style: italic;
+  color: var(--hr-accent);
+}
+
+/* Heron watermark behind manifesto */
+.hr-heron-mark {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: clamp(380px, 48vw, 580px);
+  transform: translate(-50%, -45%);
+  opacity: calc(var(--hr-motif-opacity, 0.13) * 0.5);
+  color: var(--hr-sea-mid);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hr-manifesto__body {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.hr-manifesto__lede {
+  font-family: var(--font-body);
+  font-size: clamp(1.15rem, 1.6vw, 1.35rem);
+  line-height: 1.75;
+  color: var(--hr-ink-soft);
+}
+
+.hr-manifesto__lede::first-letter {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 4.2em;
+  line-height: 0.85;
+  float: left;
+  margin: 0.05em 0.18em 0 0;
+  color: var(--hr-accent);
+  font-style: italic;
+}
+
+.hr-manifesto__body p {
+  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+  line-height: 1.8;
+  color: var(--hr-ink-soft);
+}
+
+.hr-manifesto__body strong {
+  color: var(--hr-sea-deep);
+  font-weight: 600;
+  font-style: italic;
+  background: linear-gradient(transparent 65%, color-mix(in oklab, var(--hr-gold-light) 50%, transparent) 65%);
+  padding: 0 2px;
+}
+
+/* Three pillars row */
+.hr-pillars {
+  margin-top: 3.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  text-align: center;
+  position: relative;
+}
+.hr-pillars::before {
+  content: "";
+  position: absolute;
+  left: 8%; right: 8%; top: -1.5rem;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--hr-gold) 50%, transparent);
+  opacity: 0.4;
+}
+.hr-pillar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+.hr-pillar__icon {
+  width: 44px; height: 44px;
+  color: var(--hr-accent);
+  margin-bottom: 0.25rem;
+}
+.hr-pillar__label {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hr-gold);
+}
+.hr-pillar__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+  font-weight: 600;
+  color: var(--hr-sea-deep);
+  line-height: 1.25;
+  max-width: 16ch;
+}
+
+.hr-manifesto__cta {
+  margin-top: 3rem;
+  text-align: center;
+}
+
+/* ============================================================
+   FEEDBACK — "Letters from Readers"
+   ============================================================ */
+.hr-feedback {
+  position: relative;
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--hr-paper-2) 80%, var(--hr-paper)),
+      var(--hr-paper-2));
+  padding: clamp(4rem, 10vh, 6.5rem) 5% clamp(4rem, 10vh, 7rem);
+  overflow: hidden;
+  border-top: 1px solid color-mix(in oklab, var(--hr-gold) 22%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--hr-gold) 22%, transparent);
+}
+
+/* Coral silhouettes flanking */
+.hr-feedback__coral {
+  position: absolute;
+  bottom: 0;
+  width: clamp(120px, 16vw, 200px);
+  opacity: calc(var(--hr-motif-opacity, 0.13) * 1.3);
+  color: var(--hr-accent-dark);
+  pointer-events: none;
+}
+.hr-feedback__coral--l { left: 1%; }
+.hr-feedback__coral--r { right: 1%; transform: scaleX(-1); }
+
+.hr-feedback__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Override the existing carousel cards to feel like postcards */
+.hr-feedback .fbc-card {
+  border: 6px solid var(--hr-paper);
+  background: var(--hr-paper);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 14px 36px rgba(20,12,4,0.22),
+    0 4px 10px rgba(20,12,4,0.12);
+  border-radius: 2px;
+}
+.hr-feedback .fbc-card--center {
+  border-color: var(--hr-paper);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--hr-gold) 40%, transparent) inset,
+    0 20px 48px rgba(20,12,4,0.28);
+}
+.hr-feedback .fbc-card img { background: var(--hr-paper); }
+.hr-feedback .fbc-arrow {
+  background: var(--hr-paper);
+  border: 1.5px solid color-mix(in oklab, var(--hr-gold) 45%, var(--hr-paper-3));
+  color: var(--hr-sea-deep);
+}
+.hr-feedback .fbc-arrow:hover {
+  background: var(--hr-sea-deep);
+  color: var(--hr-paper);
+  border-color: var(--hr-sea-deep);
+}
+.hr-feedback .fbc-counter {
+  color: var(--hr-ink-muted);
+  font-family: var(--font-ui);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+
+
+
+/* ── Tweaks panel styling ─────────────────────────────────── */
+.hr-tweaks {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 9000;
+  width: 280px;
+  background: var(--color-parchment, #faf6ef);
+  border: 1px solid color-mix(in oklab, var(--hr-gold, #b8892a) 35%, #d6c9a8);
+  border-radius: 8px;
+  box-shadow: 0 24px 60px rgba(8,26,44,0.32);
+  font-family: var(--font-ui);
+  color: var(--hr-ink, #1f1810);
+  overflow: hidden;
+  transform: translateY(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s, opacity 0.25s;
+}
+.hr-tweaks.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.hr-tweaks__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.9rem 0.7rem 1rem;
+  background: var(--hr-sea-deep, #081a2c);
+  color: #f7f0e1;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.hr-tweaks__close {
+  background: none; border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.hr-tweaks__close:hover { background: rgba(255,255,255,0.1); color: white; }
+
+.hr-tweaks__body {
+  padding: 1rem 1rem 1.2rem;
+  display: flex; flex-direction: column; gap: 1.1rem;
+}
+.hr-tweak-group__label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hr-ink-muted, #8a7a62);
+  margin-bottom: 0.45rem;
+  display: block;
+}
+
+.hr-swatches {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.hr-swatch {
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  padding: 4px;
+  background: transparent;
+  transition: border-color 0.15s;
+}
+.hr-swatch.is-active {
+  border-color: var(--hr-sea-deep, #081a2c);
+}
+.hr-swatch__chip {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 0.6fr 0.6fr;
+  height: 40px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.hr-swatch__chip > span { display: block; height: 100%; }
+.hr-swatch__name {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--hr-ink-muted, #8a7a62);
+  text-align: center;
+}
+.hr-swatch.is-active .hr-swatch__name { color: var(--hr-sea-deep, #081a2c); font-weight: 700; }
+
+.hr-segmented {
+  display: flex;
+  border: 1px solid color-mix(in oklab, var(--hr-gold, #b8892a) 25%, #d6c9a8);
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+}
+.hr-segmented button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 0.55rem 0.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hr-ink-muted, #8a7a62);
+  cursor: pointer;
+  font-weight: 600;
+}
+.hr-segmented button + button { border-left: 1px solid color-mix(in oklab, var(--hr-gold, #b8892a) 20%, #e8dfd0); }
+.hr-segmented button.is-active {
+  background: var(--hr-sea-deep, #081a2c);
+  color: #f7f0e1;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 800px) {
+  .hr-pillars { grid-template-columns: 1fr; gap: 2rem; }
+  .hr-collage__plate:nth-child(1),
+  .hr-collage__plate:nth-child(3) { width: 28%; }
+  .hr-collage__plate:nth-child(2) { width: 36%; }
+  .hr-corner { width: 140px; }
+  .hr-watermark { width: 380px; }
+  .hr-tweaks {
+    width: calc(100vw - 1.5rem);
+    right: 0.75rem;
+    bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .hr-collage { gap: 0.35rem; }
+  .hr-hero { padding-top: 2.5rem; padding-bottom: 3rem; }
+  .hr-manifesto__lede::first-letter { font-size: 3.2em; }
+}
+
+/* Hide existing site-footer top margin so it tucks against wave */
+.home-redesign + .site-footer,
+.home-redesign ~ .site-footer { margin-top: 0; }

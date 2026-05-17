@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folktales of the Maldives | Grey Heron Books</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <script src="components.js?v=3"></script>
+    <script src="airtable.js?v=3"></script>
+</head>
+<body>
+
+    <div id="site-header"></div>
+
+    <main>
+
+        <!-- Hero -->
+        <section class="home-hero">
+            <span class="home-hero__label">Grey Heron Books · Maldives</span>
+            <h1>Step Into a World<br><em style="font-style:italic; color:rgba(255,255,255,0.7);">of Island Magic</em></h1>
+            <p class="home-hero__sub">Timeless folklore and vibrant stories of the Maldives,<br>kept alive for the next generation.</p>
+
+            <div class="hero-collage" id="hero-collage">
+                <!-- Shimmer placeholders shown while Airtable loads -->
+                <div class="hero-collage__item hero-collage__placeholder"></div>
+                <div class="hero-collage__item hero-collage__placeholder"></div>
+                <div class="hero-collage__item hero-collage__placeholder"></div>
+            </div>
+
+            <a href="books.html" class="btn-primary" style="position:relative;z-index:1;">Explore the Collection</a>
+        </section>
+
+        <!-- Feedback Section -->
+        <section class="feedback-section">
+            <span class="section-label" style="display:block;text-align:center;">Kind Words</span>
+            <h2 class="section-title" style="text-align:center;">What People Are Saying</h2>
+            <p class="section-subtitle" style="text-align:center;">Moments shared by families and readers across the islands.</p>
+            <div class="feedback-stage" id="feedback-stage">
+                <div class="spinner-wrap"><div class="spinner"></div></div>
+            </div>
+        </section>
+
+        <!-- Mission band -->
+        <div class="home-band">
+            <div class="home-band__inner">
+                <span class="section-label" style="display:block;text-align:center;">Our Mission</span>
+                <h2 class="section-title" style="text-align:center;">The Heart of the Stories</h2>
+                <br>
+                <p>Maldivian folklore offers a rich window into the culture, language, beliefs, and everyday life of the Maldivian people. Passed down orally for generations, these stories reflect the unique worldview of a fragile island nation.</p>
+                <p>Our collection features 14 titles retold with great respect for their originality. We believe in the value of human creativity — <strong>no AI tools</strong> are used in the creation of our artwork. Each illustration is crafted with care and cultural sensitivity.</p>
+                <br>
+                <a href="about.html" class="btn-primary">Read Our Full Story</a>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script>
+    // ── Hero collage: fetch all covers, cycle randomly every 3s ──
+    (async () => {
+        const collage = document.getElementById('hero-collage');
+        const INTERVAL_MS = 3000; // swap every 3 seconds
+        let allCovers = [];
+        let usedIndices = [];
+        let cycleTimer = null;
+
+        // Fisher-Yates shuffle
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // Pick 3 covers ensuring no repeats until the pool is exhausted
+        function pickThree() {
+            if (usedIndices.length + 3 > allCovers.length) {
+                usedIndices = []; // reset pool
+            }
+            const available = allCovers
+                .map((_, i) => i)
+                .filter(i => !usedIndices.includes(i));
+            const shuffled = shuffle(available);
+            const chosen = shuffled.slice(0, 3);
+            usedIndices.push(...chosen);
+            return chosen.map(i => allCovers[i]);
+        }
+
+        // Render 3 items with a fade-in transition
+        function renderCovers(covers) {
+            const items = collage.querySelectorAll('.hero-collage__item');
+            covers.forEach((cover, i) => {
+                const item = items[i];
+                if (!item) return;
+                const img = item.querySelector('img');
+                // Fade out
+                img.style.opacity = '0';
+                setTimeout(() => {
+                    img.src = cover.url;
+                    img.alt = cover.title;
+                    // Fade back in once loaded
+                    img.onload = () => { img.style.opacity = '1'; };
+                    // Fallback in case onload already fired
+                    if (img.complete) img.style.opacity = '1';
+                }, 300);
+            });
+        }
+
+        try {
+            const records = await fetchAllRecords(TABLES.books);
+            allCovers = records
+                .filter(r => getAttachmentUrl(r.fields['Cover Photo']))
+                .map(r => ({
+                    url:   getAttachmentUrl(r.fields['Cover Photo']),
+                    title: r.fields['Title'] || 'Book cover',
+                }));
+
+            if (!allCovers.length) { collage.style.display = 'none'; return; }
+
+            // Build the 3 permanent item wrappers (images swap inside them)
+            const first = pickThree();
+            collage.innerHTML = first.map((cover, i) => `
+                <div class="hero-collage__item">
+                    <img src="${cover.url}" alt="${cover.title}"
+                         loading="eager"
+                         style="transition: opacity 0.3s ease;">
+                </div>
+            `).join('');
+
+            // Only cycle if there are enough books to be interesting
+            if (allCovers.length > 3) {
+                cycleTimer = setInterval(() => {
+                    renderCovers(pickThree());
+                }, INTERVAL_MS);
+            }
+
+        } catch (err) {
+            collage.style.display = 'none';
+            console.error('Hero collage error:', err.message);
+        }
+    })();
+
+    // ── Feedback carousel + lightbox ──────────────────────────
+    (async () => {
+        const stage = document.getElementById('feedback-stage');
+
+        // ── Lightbox ─────────────────────────────────────────
+        const backdrop = document.createElement('div');
+        backdrop.className = 'feedback-lightbox-backdrop';
+        const lbImg = document.createElement('img');
+        backdrop.appendChild(lbImg);
+        document.body.appendChild(backdrop);
+
+        function openLightbox(src) {
+            lbImg.src = src;
+            backdrop.classList.add('is-visible');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            backdrop.classList.remove('is-visible');
+            document.body.style.overflow = '';
+        }
+        backdrop.addEventListener('click', closeLightbox);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+        try {
+            const records = await fetchAllRecords(TABLES.feedback, { skipView: true });
+            const items = records
+                .filter(r => r.fields['Images'] && r.fields['Images'].length)
+                .map(r => r.fields['Images'][0].url);
+
+            if (!items.length) { stage.innerHTML = ''; return; }
+
+            const total = items.length;
+            let current = Math.floor(Math.random() * total);
+
+            function mod(n, m) { return ((n % m) + m) % m; }
+
+            // Build carousel HTML
+            stage.innerHTML = `
+                <div class="fbc-wrap">
+                    <button class="fbc-arrow fbc-arrow--prev" aria-label="Previous">&#8592;</button>
+                    <div class="fbc-track" id="fbc-track"></div>
+                    <button class="fbc-arrow fbc-arrow--next" aria-label="Next">&#8594;</button>
+                </div>
+                <p class="fbc-counter" id="fbc-counter"></p>
+            `;
+
+            const track   = document.getElementById('fbc-track');
+            const counter = document.getElementById('fbc-counter');
+
+            function render() {
+                track.innerHTML = '';
+                // Show 5 slots: -2, -1, 0 (center), +1, +2
+                [-2, -1, 0, 1, 2].forEach(offset => {
+                    const idx = mod(current + offset, total);
+                    const div = document.createElement('div');
+                    div.className = 'fbc-card' +
+                        (offset === 0  ? ' fbc-card--center' : '') +
+                        (Math.abs(offset) === 1 ? ' fbc-card--side' : '') +
+                        (Math.abs(offset) === 2 ? ' fbc-card--far'  : '');
+                    div.innerHTML = `<img src="${items[idx]}" alt="Feedback" loading="lazy">`;
+                    if (offset === 0) {
+                        div.addEventListener('click', () => openLightbox(items[idx]));
+                    } else {
+                        // Clicking a side card jumps to it
+                        div.addEventListener('click', () => { current = idx; render(); });
+                    }
+                    track.appendChild(div);
+                });
+                counter.textContent = `${current + 1} of ${total}`;
+            }
+
+            render();
+
+            document.querySelector('.fbc-arrow--prev').addEventListener('click', () => {
+                current = mod(current - 1, total); render();
+            });
+            document.querySelector('.fbc-arrow--next').addEventListener('click', () => {
+                current = mod(current + 1, total); render();
+            });
+
+            // Keyboard arrows
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft')  { current = mod(current - 1, total); render(); }
+                if (e.key === 'ArrowRight') { current = mod(current + 1, total); render(); }
+            });
+
+        } catch (err) {
+            stage.innerHTML = '';
+            console.error('Feedback carousel error:', err.message);
+        }
+    })();
+    </script>
+
+    <style>
+        /* Shimmer placeholder while covers load */
+        .hero-collage__placeholder {
+            background: linear-gradient(
+                90deg,
+                rgba(255,255,255,0.06) 25%,
+                rgba(255,255,255,0.12) 50%,
+                rgba(255,255,255,0.06) 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite, fadeUp 0.4s ease forwards;
+            border-radius: var(--radius-md);
+            aspect-ratio: 3/4;
+        }
+        .hero-collage__item:nth-child(1).hero-collage__placeholder { width: 150px; }
+        .hero-collage__item:nth-child(2).hero-collage__placeholder { width: 180px; }
+        .hero-collage__item:nth-child(3).hero-collage__placeholder { width: 150px; }
+        @keyframes shimmer {
+            from { background-position: 200% 0; }
+            to   { background-position: -200% 0; }
+        }
+    </style>
+
+</body>
+</html>

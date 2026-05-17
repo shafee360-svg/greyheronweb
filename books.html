@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Collection | Folktales of the Maldives</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="home-redesign.css?v=2">
+    <script src="components.js?v=3"></script>
+    <script src="airtable.js?v=3"></script>
+    <script src="cart.js?v=1"></script>
+    <script src="gh-extras.js?v=1"></script>
+</head>
+<body class="home-redesign" data-palette="manuscript" data-motifs="subtle" data-screen-label="Books">
+
+    <div id="site-header"></div>
+
+    <main>
+    <section class="hr-page-hero" data-comment-anchor="books-hero">
+        <div class="hr-hero__atmosphere"></div>
+        <svg class="hr-corner hr-corner--tl" aria-hidden="true"><use href="#m-leaf"/></svg>
+        <svg class="hr-corner hr-corner--tr" aria-hidden="true"><use href="#m-leaf"/></svg>
+        <svg class="hr-watermark" aria-hidden="true"><use href="#m-heron"/></svg>
+
+        <div class="hr-page-hero__inner">
+            <div class="hr-rule">
+                <span class="hr-rule__line"></span>
+                <svg class="hr-rule__glyph" aria-hidden="true"><use href="#m-glyph"/></svg>
+                <span class="hr-rule__line"></span>
+            </div>
+            <span class="hr-eyebrow">Grey Heron Books</span>
+            <h1 class="hr-title">
+                Our <em>Collection</em>
+            </h1>
+            <p class="hr-sub">Fourteen titles, retold with great respect for the originality.</p>
+        </div>
+
+        <svg class="hr-wave" preserveAspectRatio="none" viewBox="0 0 1200 80" aria-hidden="true">
+            <use href="#m-wave"/>
+        </svg>
+    </section>
+
+    <div class="books-controls">
+        <button class="filter-btn active" data-filter="all">All Books</button>
+        <button class="filter-btn" data-filter="Dhivehi">Dhivehi</button>
+        <button class="filter-btn" data-filter="English">English</button>
+        <button class="filter-btn" data-filter="Upcoming">Upcoming</button>
+    </div>
+
+    <p class="count-badge" id="count-badge"></p>
+
+    <div class="books-gallery" id="books-gallery">
+        <div class="spinner-wrap">
+            <div class="spinner"></div>
+            <p>Gathering the stories…</p>
+        </div>
+    </div>
+
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script>
+    const BOOK_SVG = `<svg viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+        <rect x="8"  y="4"  width="44" height="72" rx="4" opacity="0.3"/>
+        <rect x="12" y="8"  width="36" height="64" rx="2" opacity="0.2"/>
+        <rect x="16" y="20" width="28" height="3"   rx="1" opacity="0.4"/>
+        <rect x="16" y="28" width="20" height="3"   rx="1" opacity="0.3"/>
+        <rect x="16" y="36" width="24" height="3"   rx="1" opacity="0.3"/>
+    </svg>`;
+
+    const gallery    = document.getElementById('books-gallery');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const countBadge = document.getElementById('count-badge');
+    let allCards     = [];
+    let activeFilter = 'all';
+
+    const REC_ID = /^rec[A-Za-z0-9]{8,}$/;
+
+    function resolveNames(field) {
+        if (!field) return '';
+        const arr = Array.isArray(field) ? field : [field];
+        return arr.map(v => String(v).trim()).filter(v => v && !REC_ID.test(v)).join(', ');
+    }
+
+    function getAuthorLine(fields) {
+        const keys = Object.keys(fields);
+        for (const pattern of [/author/i, /illustrat/i]) {
+            for (const k of keys) {
+                if (pattern.test(k)) {
+                    const v = resolveNames(fields[k]);
+                    if (v) return v;
+                }
+            }
+        }
+        return '';
+    }
+
+    function applyFilter() {
+        let visible = 0;
+        allCards.forEach(({ card, language, availability }) => {
+            let show;
+            if (activeFilter === 'all') {
+                show = true;
+            } else if (activeFilter === 'Upcoming') {
+                show = availability === 'Upcoming';
+            } else {
+                show = language === activeFilter;
+            }
+            card.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+        countBadge.textContent = visible === allCards.length
+            ? `${allCards.length} title${allCards.length !== 1 ? 's' : ''} in the collection`
+            : `${visible} of ${allCards.length} titles`;
+    }
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeFilter = btn.dataset.filter;
+            applyFilter();
+        });
+    });
+
+    // ── Sync all cart buttons to reflect current cart state ───
+    function syncCartButtons() {
+        gallery.querySelectorAll('.btn-cart').forEach(btn => {
+            const id = btn.dataset.id;
+            const inCart = Cart.has(id);
+            btn.classList.toggle('in-cart', inCart);
+            btn.textContent = inCart ? '✓ In Cart' : '+ Cart';
+            btn.setAttribute('aria-label', inCart ? 'Remove from cart' : 'Add to cart');
+        });
+    }
+
+    // Re-sync whenever cart changes (e.g. user opens cart in another tab)
+    Cart.onUpdate(syncCartButtons);
+
+    (async () => {
+        try {
+            const records = await fetchAllRecords(TABLES.books);
+            gallery.innerHTML = '';
+
+            if (!records.length) {
+                gallery.innerHTML = '<p style="grid-column:1/-1;text-align:center;font-style:italic;color:var(--color-ink-muted);">No books found.</p>';
+                return;
+            }
+
+            const langOrder = { 'English': 0, 'Bilingual': 1, 'Dhivehi': 2 };
+            records.sort((a, b) => {
+                const la = langOrder[a.fields['Language']] ?? 99;
+                const lb = langOrder[b.fields['Language']] ?? 99;
+                return la - lb;
+            });
+
+            countBadge.textContent = `${records.length} title${records.length !== 1 ? 's' : ''} in the collection`;
+
+            records.forEach((record, i) => {
+                const f           = record.fields;
+                const title       = f['Title'] || 'Untitled';
+                const coverUrl    = getAttachmentUrl(f['Cover Photo']);
+                const language    = f['Language'] || '';
+                const availability = f['Availability'] || '';
+                const bookType    = f['Book Type'] || '';
+                const price       = f['Retail Price'];
+                const authorLine  = getAuthorLine(f);
+                const isAvailable = !!(f['Synopsis (English)'] || coverUrl);
+                const badge       = [bookType, language].filter(Boolean).join(' · ');
+                const badgeClass  = bookType.toLowerCase().includes('hardcover') ? 'book-type-badge book-type-badge--hardcover' : 'book-type-badge';
+                const inCart      = Cart.has(record.id);
+
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                card.dataset.language = language;
+                card.style.animationDelay = `${i * 45}ms`;
+
+                const coverHTML = coverUrl
+                    ? `<img src="${coverUrl}" alt="${title}" loading="lazy">`
+                    : `<div class="book-cover-placeholder">${BOOK_SVG}<span>No cover yet</span></div>`;
+
+                const ribbonHTML = !isAvailable
+                    ? `<div class="ribbon-wrap"><div class="ribbon">Soon</div></div>` : '';
+
+                const priceHTML = price
+                    ? `<p class="book-price">MVR ${price}</p>`
+                    : `<p class="book-price coming-soon">Coming Soon</p>`;
+
+                // Available books get two buttons side-by-side; unavailable keeps "Coming Soon"
+                const actionsHTML = isAvailable
+                    ? `<div class="book-card-actions">
+                          <a href="book-details.html?id=${encodeURIComponent(record.id)}" class="btn-view-story">Details →</a>
+                          <button
+                            class="btn-cart${inCart ? ' in-cart' : ''}"
+                            data-id="${record.id}"
+                            data-title="${title.replace(/"/g, '&quot;')}"
+                            data-language="${language}"
+                            data-price="${price ?? ''}"
+                            data-cover="${coverUrl ?? ''}"
+                            aria-label="${inCart ? 'Remove from cart' : 'Add to cart'}"
+                          >${inCart ? '✓ In Cart' : '+ Cart'}</button>
+                       </div>`
+                    : `<span class="btn-coming-soon">Coming Soon</span>`;
+
+                card.innerHTML = `
+                    <div class="book-cover-wrap">
+                        ${coverHTML}
+                        ${ribbonHTML}
+                    </div>
+                    <div class="book-card-body">
+                        <h3>${title}</h3>
+                        ${authorLine ? `<p class="book-card-author">${authorLine}</p>` : ''}
+                        <div class="book-card-bottom">
+                            ${badge ? `<span class="${badgeClass}">${badge}</span>` : ''}
+                            ${priceHTML}
+                            ${actionsHTML}
+                        </div>
+                    </div>
+                `;
+
+                // ── Wire up the cart button ────────────────────────────
+                const cartBtn = card.querySelector('.btn-cart');
+                if (cartBtn) {
+                    cartBtn.addEventListener('click', () => {
+                        const id = cartBtn.dataset.id;
+                        if (Cart.has(id)) {
+                            Cart.remove(id);
+                        } else {
+                            Cart.add({
+                                id,
+                                title:    cartBtn.dataset.title,
+                                language: cartBtn.dataset.language,
+                                price:    cartBtn.dataset.price ? parseFloat(cartBtn.dataset.price) : null,
+                                coverUrl: cartBtn.dataset.cover || null,
+                            });
+                        }
+                        syncCartButtons();
+                    });
+                }
+
+                gallery.appendChild(card);
+                allCards.push({ card, language, availability });
+            });
+
+        } catch (err) {
+            gallery.innerHTML = `
+                <div style="grid-column:1/-1;text-align:center;padding:5rem 1rem;">
+                    <p style="color:#c00;">⚠️ Could not load books: ${err.message}</p>
+                    <p style="font-size:0.85rem;color:var(--color-ink-muted);margin-top:0.5rem;">Check your Airtable token in airtable.js</p>
+                </div>`;
+        }
+    })();
+    </script>
+
+    <style>
+        /* ── Two-button action row on each book card ── */
+        .book-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+        .book-card-actions .btn-view-story {
+            flex: 1;
+        }
+
+        /* Cart toggle button */
+        .btn-cart {
+            flex-shrink: 0;
+            padding: 0.6rem 0.85rem;
+            background: white;
+            border: 1.5px solid var(--color-border-soft);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-ui);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-ink-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.02em;
+        }
+        .btn-cart:hover {
+            border-color: var(--color-teal);
+            color: var(--color-teal);
+            background: var(--color-teal-light);
+        }
+        .btn-cart.in-cart {
+            background: var(--color-teal);
+            border-color: var(--color-teal);
+            color: white;
+        }
+        .btn-cart.in-cart:hover {
+            background: var(--color-coral);
+            border-color: var(--color-coral);
+            color: white;
+        }
+    </style>
+
+</body>
+</html>

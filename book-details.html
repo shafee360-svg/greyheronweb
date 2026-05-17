@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details | Folktales of the Maldives</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="home-redesign.css?v=2">
+    <script src="components.js?v=3"></script>
+    <script src="airtable.js?v=3"></script>
+    <script src="cart.js?v=1"></script>
+    <script src="gh-extras.js?v=1"></script>
+    <style>
+        /* Spinner for initial page load (before components inject) */
+        .page-loading {
+            text-align: center;
+            padding: 8rem 1rem;
+            color: var(--color-ink-muted);
+        }
+
+        /* ── Cart action row on book details ── */
+        .book-actions .btn-cart-detail {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.75rem 1.75rem;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-ui);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            border: 2px solid var(--color-teal);
+            background: white;
+            color: var(--color-teal);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .book-actions .btn-cart-detail:hover {
+            background: var(--color-teal-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(42,143,130,0.2);
+        }
+        .book-actions .btn-cart-detail.in-cart {
+            background: var(--color-teal);
+            color: white;
+            border-color: var(--color-teal);
+        }
+        .book-actions .btn-cart-detail.in-cart:hover {
+            background: var(--color-coral);
+            border-color: var(--color-coral);
+            color: white;
+        }
+
+        /* View cart nudge link shown after adding */
+        .cart-nudge {
+            display: none;
+            font-family: var(--font-ui);
+            font-size: 0.82rem;
+            color: var(--color-teal);
+            text-decoration: underline;
+            margin-top: 0.6rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .cart-nudge.visible { display: inline-block; }
+        .cart-nudge:hover { color: var(--color-coral); }
+    </style>
+</head>
+<body class="home-redesign" data-palette="manuscript" data-motifs="subtle" data-screen-label="Book Detail">
+
+    <div id="site-header"></div>
+
+    <main>
+    <section class="hr-page-hero hr-page-hero--slim" data-comment-anchor="book-detail-band">
+        <div class="hr-hero__atmosphere"></div>
+        <svg class="hr-corner hr-corner--tl" aria-hidden="true"><use href="#m-leaf"/></svg>
+        <svg class="hr-corner hr-corner--tr" aria-hidden="true"><use href="#m-leaf"/></svg>
+
+        <div class="hr-page-hero__inner">
+            <div class="hr-rule">
+                <span class="hr-rule__line"></span>
+                <svg class="hr-rule__glyph" aria-hidden="true"><use href="#m-glyph"/></svg>
+                <span class="hr-rule__line"></span>
+            </div>
+            <span class="hr-eyebrow">From the Collection</span>
+        </div>
+
+        <svg class="hr-wave" preserveAspectRatio="none" viewBox="0 0 1200 80" aria-hidden="true">
+            <use href="#m-wave"/>
+        </svg>
+    </section>
+
+    <div id="page-content">
+        <div class="page-loading">
+            <div class="spinner" style="margin:0 auto;"></div>
+            <p style="margin-top:1rem;font-style:italic;">Loading book…</p>
+        </div>
+    </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script>
+    // Hoisted so modal functions (defined outside the IIFE) can access them
+    let charMap  = {};
+    let themeMap = {};
+
+    (async () => {
+        const main    = document.getElementById('page-content');
+        const params  = new URLSearchParams(window.location.search);
+        const idParam = params.get('id');
+
+        if (!idParam) { main.innerHTML = notFound(); return; }
+
+        try {
+            let record;
+
+            if (idParam.startsWith('rec')) {
+                const headers = { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` };
+                const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLES.books)}/${idParam}`;
+                const res = await fetch(url, { headers });
+                if (!res.ok) throw new Error('Book not found');
+                record = await res.json();
+            } else {
+                const records = await fetchAllRecords(TABLES.books, {
+                    filterFormula: `{Code Name} = "${idParam}"`
+                });
+                if (!records.length) { main.innerHTML = notFound(); return; }
+                record = records[0];
+            }
+
+            const f           = record.fields;
+            const coverUrl    = getAttachmentUrl(f['Cover Photo']);
+            const title       = f['Title'] || 'Untitled';
+            const language    = f['Language'] || '';
+            const bookType    = f['Book Type'] || '';
+            const published   = f['Published'] || '';
+            const price       = f['Retail Price'];
+            const synopsis    = f['Synopsis (English)'] || 'No synopsis available.';
+            const sneakPeek   = getAttachmentUrl(f['Sneak peak']);
+
+            const REC_ID = /^rec[A-Za-z0-9]{8,}$/;
+
+            function resolveNames(field) {
+                if (!field) return '';
+                const arr = Array.isArray(field) ? field : [field];
+                return arr.map(v => String(v).trim()).filter(v => v && !REC_ID.test(v)).join(', ');
+            }
+
+            function scanNames(pattern) {
+                for (const k of Object.keys(f)) {
+                    if (pattern.test(k)) {
+                        const v = resolveNames(f[k]);
+                        if (v) return v;
+                    }
+                }
+                return '';
+            }
+
+            const authors      = scanNames(/author/i);
+            const illustrators = scanNames(/illustrat/i);
+            const sameCredit   = authors && authors === illustrators;
+
+            let creditsHTML;
+            if (sameCredit) {
+                creditsHTML = `<div><small>Author &amp; Illustrator</small><p>${authors}</p></div>`;
+            } else {
+                creditsHTML = `
+                    ${authors      ? `<div><small>Author</small><p>${authors}</p></div>` : ''}
+                    ${illustrators ? `<div><small>Illustrator</small><p>${illustrators}</p></div>` : ''}
+                    ${!authors && !illustrators ? `<div><small>Author &amp; Illustrator</small><p>Shafee Shafeeq</p></div>` : ''}
+                `;
+            }
+
+            document.title = `${title} | Folktales of the Maldives`;
+
+            // Fetch characters
+            let charHTML = '';
+            try {
+                const chars = await fetchAllRecords(TABLES.characters, {
+                    filterFormula: `FIND("${title}", {Name (from Appears in Book)})`
+                });
+                if (chars.length) {
+                    const REC = /^rec[A-Za-z0-9]{8,}$/;
+                    function cleanArr(v) {
+                        const a = Array.isArray(v) ? v : (v ? [v] : []);
+                        return a.map(x => String(x).trim()).filter(x => x && !REC.test(x));
+                    }
+                    function scanField(f, ...pats) {
+                        for (const p of pats)
+                            for (const k of Object.keys(f))
+                                if (p.test(k)) { const v = cleanArr(f[k]); if (v.length) return v.join(', '); }
+                        return '';
+                    }
+                    chars.forEach(c => {
+                        const f = c.fields;
+                        charMap[c.id] = {
+                            name:   f['Name'] || 'Unknown',
+                            imgUrl: getAttachmentUrl(f['Image']),
+                            type:   scanField(f, /name.*from.*character.?type/i, /character.?type/i, /type/i),
+                            desc:   f['Description'] || f['Bio'] || f['Notes'] || '',
+                            books:  scanField(f, /name.*from.*appears/i, /title.*from/i, /appears/i, /book/i),
+                            traits: scanField(f, /name.*from.*trait/i, /trait/i),
+                        };
+                    });
+                    const chips = chars.map(c => {
+                        const ch = charMap[c.id];
+                        return `<button type="button" class="char-chip" data-char-id="${c.id}">
+                            ${ch.imgUrl
+                                ? `<img src="${ch.imgUrl}" alt="${ch.name}" loading="lazy">`
+                                : `<div style="width:36px;height:36px;border-radius:50%;background:var(--color-border-soft);"></div>`
+                            }
+                            ${ch.name}
+                        </button>`;
+                    }).join('');
+                    charHTML = `
+                        <section class="related-characters" id="bd-chars-section">
+                            <h2>Characters in This Story</h2>
+                            <div class="char-chips">${chips}</div>
+                        </section>`;
+                }
+            } catch (_) { /* characters are optional */ }
+
+            // Fetch themes
+            let themesHTML = '';
+            try {
+                const themes = await fetchAllRecords(TABLES.themes, {
+                    filterFormula: `FIND("${title}", {Themes in Books})`,
+                    skipView: true
+                });
+                if (themes.length) {
+                    themes.forEach(t => {
+                        themeMap[t.id] = {
+                            name:     t.fields['Themes'] || '',
+                            category: t.fields['Theme Category'] || '',
+                            desc:     t.fields['Explanation'] || '',
+                        };
+                    });
+                    const chips = themes.map(t => {
+                        const th = themeMap[t.id];
+                        if (!th.name) return '';
+                        return `<button type="button" class="theme-chip" data-theme-id="${t.id}">
+                            <span class="theme-chip__cat">${th.category}</span>
+                            <span class="theme-chip__name">${th.name}</span>
+                        </button>`;
+                    }).filter(Boolean).join('');
+                    if (chips) {
+                        themesHTML = `
+                            <section class="related-characters" id="bd-themes-section">
+                                <h2>Themes in This Story</h2>
+                                <div class="char-chips">${chips}</div>
+                            </section>`;
+                    }
+                }
+            } catch (err) { console.error('Themes error:', err.message); }
+
+            const inCart = Cart.has(record.id);
+
+            main.innerHTML = `
+                <section class="book-hero">
+                    <div class="book-cover-col">
+                        ${coverUrl
+                            ? `<img src="${coverUrl}" alt="${title}">`
+                            : `<div style="aspect-ratio:3/4;background:var(--color-gold-light);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--color-ink-muted);font-style:italic;">No Cover Image</div>`
+                        }
+                    </div>
+
+                    <div class="book-info-col">
+                        <span class="book-badge-pill">${[bookType, language].filter(Boolean).join(' · ').toUpperCase()}</span>
+                        <h1 class="book-title">${title}</h1>
+
+                        <div class="book-specs">
+                            ${creditsHTML}
+                            <div>
+                                <small>Published</small>
+                                <p>${published || 'Coming Soon'}</p>
+                            </div>
+                            <div style="grid-column:span 2; border-top:1px solid var(--color-border-soft); padding-top:1rem; margin-top:0.25rem;">
+                                <small>Retail Price</small>
+                                <p class="price-highlight">${price ? `MVR ${price}` : 'Coming Soon'}</p>
+                            </div>
+                        </div>
+
+                        <div class="book-actions">
+                            <button
+                                id="detail-cart-btn"
+                                class="btn-cart-detail${inCart ? ' in-cart' : ''}"
+                                aria-label="${inCart ? 'Remove from cart' : 'Add to cart'}"
+                            >
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                     stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                                    <line x1="3" y1="6" x2="21" y2="6"/>
+                                    <path d="M16 10a4 4 0 01-8 0"/>
+                                </svg>
+                                ${inCart ? '✓ Added to Cart' : 'Add to Cart'}
+                            </button>
+                            <a href="books.html" class="btn-ghost">← Collection</a>
+                        </div>
+
+                        <a href="cart.html" class="cart-nudge${inCart ? ' visible' : ''}" id="cart-nudge">
+                            View your cart →
+                        </a>
+                    </div>
+                </section>
+
+                <section class="synopsis-section">
+                    <h2>The Story</h2>
+                    <p>${synopsis}</p>
+
+                    <hr>
+
+                    <h2>Artistry &amp; Process</h2>
+                    <p>Consistent with the mission of Grey Heron Books, the illustrations for this title are 100% human-made. No AI or artificial intelligence tools were used in the creation of this artwork — every brushstroke carries the authentic spirit of the islands.</p>
+
+                    ${sneakPeek ? `
+                    <hr>
+                    <h2>Sneak Peek</h2>
+                    <video controls style="width:100%;border-radius:var(--radius-md);margin-top:1rem;">
+                        <source src="${sneakPeek}">
+                        Your browser does not support the video tag.
+                    </video>` : ''}
+                </section>
+
+                ${charHTML}
+                ${themesHTML}
+            `;
+
+            // ── Wire up the cart button (after innerHTML is set) ──────
+            const cartBtn  = document.getElementById('detail-cart-btn');
+            const nudge    = document.getElementById('cart-nudge');
+
+            function syncBtn() {
+                const has = Cart.has(record.id);
+                cartBtn.classList.toggle('in-cart', has);
+                cartBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                    ${has ? '✓ Added to Cart' : 'Add to Cart'}
+                `;
+                cartBtn.setAttribute('aria-label', has ? 'Remove from cart' : 'Add to cart');
+                nudge.classList.toggle('visible', has);
+            }
+
+            cartBtn.addEventListener('click', () => {
+                if (Cart.has(record.id)) {
+                    Cart.remove(record.id);
+                } else {
+                    Cart.add({
+                        id:       record.id,
+                        title,
+                        language,
+                        price:    price ? parseFloat(price) : null,
+                        coverUrl: coverUrl || null,
+                    });
+                }
+                syncBtn();
+            });
+
+            // Keep in sync if cart changes elsewhere
+            Cart.onUpdate(syncBtn);
+
+        } catch (err) {
+            main.innerHTML = `
+                <section style="text-align:center;padding:6rem 5%;">
+                    <h1 style="color:var(--color-coral);font-family:var(--font-display);">⚠️ ${err.message}</h1>
+                    <a href="books.html" class="btn-primary" style="margin-top:1.5rem;display:inline-flex;">Back to All Books</a>
+                </section>`;
+        }
+
+        function notFound() {
+            return `<section style="text-align:center;padding:6rem 5%;">
+                <h1 style="font-family:var(--font-display);color:var(--color-ocean);">Book Not Found</h1>
+                <p style="margin:1rem 0 1.5rem;color:var(--color-ink-muted);font-style:italic;">We couldn't find that book in our collection.</p>
+                <a href="books.html" class="btn-primary">Back to All Books</a>
+            </section>`;
+        }
+    })();
+    </script>
+
+    <!-- Character modal -->
+    <div class="char-modal-backdrop" id="char-modal-backdrop" role="dialog" aria-modal="true" aria-label="Character details">
+        <div class="char-modal char-modal-wrapper" id="char-modal-inner">
+            <button class="char-modal__close" id="char-modal-close" aria-label="Close">✕</button>
+            <div id="char-modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Theme modal -->
+    <div class="char-modal-backdrop" id="theme-modal-backdrop" role="dialog" aria-modal="true" aria-label="Theme details">
+        <div class="char-modal char-modal-wrapper" id="theme-modal-inner" style="max-width:520px;">
+            <button class="char-modal__close" id="theme-modal-close" aria-label="Close">✕</button>
+            <div id="theme-modal-content"></div>
+        </div>
+    </div>
+
+    <style>
+    /* Only strip browser button chrome — let existing .char-chip / .theme-chip styles do the rest */
+    button.char-chip, button.theme-chip {
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    button.char-chip:focus-visible, button.theme-chip:focus-visible {
+        outline: 2px solid var(--color-teal);
+        outline-offset: 2px;
+    }
+
+    .theme-modal-body { padding: 2.25rem 2rem 2rem; }
+    .theme-modal-cat {
+        font-family: var(--font-ui); font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: var(--color-coral); display: block; margin-bottom: 0.6rem;
+    }
+    .theme-modal-title {
+        font-family: var(--font-display); font-size: 2.1rem;
+        color: var(--color-ocean); line-height: 1.15; margin-bottom: 1rem;
+    }
+    .theme-modal-divider { height: 1px; background: var(--color-border-soft); margin: 1rem 0 1.25rem; }
+    .theme-modal-desc { font-family: var(--font-body); font-size: 1.15rem; line-height: 1.8; color: var(--color-ink-soft); }
+    .theme-modal-footer { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border-soft); }
+    .theme-modal-footer a { font-family: var(--font-ui); font-size: 0.8rem; font-weight: 600; color: var(--color-teal); text-decoration: none; }
+    .theme-modal-footer a:hover { color: var(--color-coral); }
+    </style>
+
+    <script>
+    // Delegated handler — works after main.innerHTML is injected
+    document.addEventListener('click', e => {
+        const charBtn  = e.target.closest('button.char-chip[data-char-id]');
+        if (charBtn)  { openCharModal(charBtn.dataset.charId);   return; }
+        const themeBtn = e.target.closest('button.theme-chip[data-theme-id]');
+        if (themeBtn) { openThemeModal(themeBtn.dataset.themeId); }
+    });
+
+    // ── Character modal ──
+    const charBackdrop     = document.getElementById('char-modal-backdrop');
+    const charModalClose   = document.getElementById('char-modal-close');
+    const charModalContent = document.getElementById('char-modal-content');
+
+    function openCharModal(id) {
+        const c = charMap[id];
+        if (!c) return;
+        charModalContent.innerHTML = `
+            ${c.imgUrl
+                ? `<img src="${c.imgUrl}" alt="${c.name}" class="char-modal__img" loading="lazy">`
+                : `<div class="char-modal__img-placeholder">🌊</div>`}
+            <div class="char-modal__body">
+                ${c.type  ? `<span class="char-modal__type">${c.type}</span>` : ''}
+                <h2 class="char-modal__name">${c.name}</h2>
+                ${c.desc  ? `<div class="char-modal__divider"></div>
+                             <span class="char-modal__label">About</span>
+                             <p class="char-modal__value">${c.desc}</p>` : ''}
+                ${c.books ? `<span class="char-modal__label">Appears In</span>
+                             <p class="char-modal__value">${c.books}</p>` : ''}
+                ${c.traits? `<span class="char-modal__label">Traits</span>
+                             <p class="char-modal__value">${c.traits}</p>` : ''}
+            </div>`;
+        charBackdrop.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeCharModal() { charBackdrop.classList.remove('is-open'); document.body.style.overflow = ''; }
+    charBackdrop.addEventListener('click', e => { if (e.target === charBackdrop) closeCharModal(); });
+    charModalClose.addEventListener('click', closeCharModal);
+
+    // ── Theme modal ──
+    const themeBackdrop     = document.getElementById('theme-modal-backdrop');
+    const themeModalClose   = document.getElementById('theme-modal-close');
+    const themeModalContent = document.getElementById('theme-modal-content');
+
+    function openThemeModal(id) {
+        const t = themeMap[id];
+        if (!t) return;
+        themeModalContent.innerHTML = `
+            <div class="theme-modal-body">
+                ${t.category ? `<span class="theme-modal-cat">${t.category}</span>` : ''}
+                <h2 class="theme-modal-title">${t.name}</h2>
+                <div class="theme-modal-divider"></div>
+                <p class="theme-modal-desc">${t.desc || 'No explanation available yet.'}</p>
+                <div class="theme-modal-footer">
+                    <a href="elements.html">Explore all themes →</a>
+                </div>
+            </div>`;
+        themeBackdrop.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeThemeModal() { themeBackdrop.classList.remove('is-open'); document.body.style.overflow = ''; }
+    themeBackdrop.addEventListener('click', e => { if (e.target === themeBackdrop) closeThemeModal(); });
+    themeModalClose.addEventListener('click', closeThemeModal);
+
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (charBackdrop.classList.contains('is-open'))   closeCharModal();
+        if (themeBackdrop.classList.contains('is-open'))  closeThemeModal();
+    });
+    </script>
+
+</body>
+</html>

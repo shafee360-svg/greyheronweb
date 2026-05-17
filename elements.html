@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folklore Themes | Folktales of the Maldives</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="home-redesign.css?v=2">
+    <script src="components.js?v=3"></script>
+    <script src="airtable.js?v=3"></script>
+    <script src="cart.js?v=1"></script>
+    <script src="gh-extras.js?v=1"></script>
+</head>
+<body class="home-redesign" data-palette="ocean" data-motifs="subtle" data-screen-label="Themes">
+
+    <div id="site-header"></div>
+
+    <main>
+        <section class="hr-page-hero" data-comment-anchor="themes-hero">
+            <div class="hr-hero__atmosphere"></div>
+            <svg class="hr-corner hr-corner--tl" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-corner hr-corner--tr" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-watermark" aria-hidden="true"><use href="#m-heron"/></svg>
+
+            <div class="hr-page-hero__inner">
+                <div class="hr-rule">
+                    <span class="hr-rule__line"></span>
+                    <svg class="hr-rule__glyph" aria-hidden="true"><use href="#m-glyph"/></svg>
+                    <span class="hr-rule__line"></span>
+                </div>
+                <span class="hr-eyebrow">Folklore</span>
+                <h1 class="hr-title">
+                    Themes of <em>Maldivian Folklore</em>
+                </h1>
+                <p class="hr-sub">The deeper currents flowing through every story.</p>
+            </div>
+
+            <svg class="hr-wave" preserveAspectRatio="none" viewBox="0 0 1200 80" aria-hidden="true">
+                <use href="#m-wave"/>
+            </svg>
+        </section>
+
+        <div class="themes-stats" id="themes-stats"></div>
+
+        <div class="themes-dashboard">
+
+            <!-- Left: grouped theme tags -->
+            <div class="themes-left" id="themes-left">
+                <div class="spinner-wrap">
+                    <div class="spinner"></div>
+                    <p>Gathering the themes…</p>
+                </div>
+            </div>
+
+            <!-- Right: detail panel -->
+            <div class="detail-panel" id="detail-panel">
+                <div class="detail-panel-bar"></div>
+                <div id="detail-body"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <!-- Character modal -->
+    <div class="char-modal-backdrop" id="char-modal-backdrop" role="dialog" aria-modal="true" aria-label="Character details">
+        <div class="char-modal char-modal-wrapper" id="char-modal-inner">
+            <button class="char-modal__close" id="char-modal-close" aria-label="Close">✕</button>
+            <div id="char-modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Book modal -->
+    <div class="char-modal-backdrop" id="book-modal-backdrop" role="dialog" aria-modal="true" aria-label="Book details">
+        <div class="char-modal char-modal-wrapper book-modal" id="book-modal-inner">
+            <button class="char-modal__close" id="book-modal-close" aria-label="Close">✕</button>
+            <div id="book-modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+    let DETAIL_BODY = null;
+    document.addEventListener('DOMContentLoaded', () => {
+        DETAIL_BODY = document.getElementById('detail-body');
+
+        // Delegated handler — fires the char modal for any character avatar button
+        DETAIL_BODY.addEventListener('click', e => {
+            const charBtn = e.target.closest('[data-char-id]');
+            if (charBtn) { const c = charMap[charBtn.dataset.charId]; if (c) openCharModal(c); return; }
+
+            const bookBtn = e.target.closest('[data-book-id]');
+            if (bookBtn) { openBookModal(bookBtn.dataset.bookId); }
+        });
+    });
+
+    const bookMap = {};
+    const charMap = {};
+
+    // Strip raw Airtable record IDs — they look like recXXXXXXXXXX
+    const REC_ID = /^rec[A-Za-z0-9]{8,}$/;
+    function cleanIds(arr) {
+        if (!arr) return [];
+        return (Array.isArray(arr) ? arr : [arr]).filter(v => v && REC_ID.test(String(v).trim()));
+    }
+    function cleanNames(arr) {
+        if (!arr) return [];
+        return (Array.isArray(arr) ? arr : [arr])
+            .map(v => String(v).trim())
+            .filter(v => v && !REC_ID.test(v));
+    }
+
+    // ── Character modal ────────────────────────────────────────
+    const charBackdrop   = document.getElementById('char-modal-backdrop');
+    const charModalClose = document.getElementById('char-modal-close');
+    const charModalContent = document.getElementById('char-modal-content');
+
+    function openCharModal(c) {
+        const imgHTML = c.imgUrl
+            ? `<img src="${c.imgUrl}" alt="${c.name}" class="char-modal__img" loading="lazy">`
+            : `<div class="char-modal__img-placeholder">🌊</div>`;
+
+        charModalContent.innerHTML = `
+            ${imgHTML}
+            <div class="char-modal__body">
+                ${c.type  ? `<span class="char-modal__type">${c.type}</span>` : ''}
+                <h2 class="char-modal__name">${c.name}</h2>
+                ${c.desc  ? `<div class="char-modal__divider"></div>
+                             <span class="char-modal__label">About</span>
+                             <p class="char-modal__value">${c.desc}</p>` : ''}
+                ${c.books ? `<span class="char-modal__label">Appears In</span>
+                             <p class="char-modal__value">${c.books}</p>` : ''}
+                ${c.traits? `<span class="char-modal__label">Traits</span>
+                             <p class="char-modal__value">${c.traits}</p>` : ''}
+            </div>
+        `;
+        charBackdrop.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCharModal() {
+        charBackdrop.classList.remove('is-open');
+        document.body.style.overflow = '';
+    }
+
+    charBackdrop.addEventListener('click', e => { if (e.target === charBackdrop) closeCharModal(); });
+    charModalClose.addEventListener('click', closeCharModal);
+
+    function showDetail(theme, cat, fields) {
+        const el = DETAIL_BODY || document.getElementById('detail-body');
+        if (!el) return;
+
+        const desc = fields['Explanation'] || '';
+
+        // "Themes in Books" holds linked record IDs → look them up in bookMap
+        // Also check "Related Stories" as a fallback for older setups
+        const storyIds = cleanIds(fields['Themes in Books'] || fields['Related Stories'] || []);
+
+        // "Related Characters" holds linked record IDs → look them up in charMap
+        const charIds  = cleanIds(fields['Related Characters'] || []);
+
+        // Build story tags — use bookMap for the modal trigger, fall back gracefully
+        const storyHTML = storyIds.length
+            ? storyIds.map(id => {
+                const b = bookMap[id];
+                if (b) return `<button type="button" class="detail-story-tag detail-link" data-book-id="${b.id}">${b.title}</button>`;
+                return ''; // skip IDs we can't resolve
+              }).filter(Boolean).join('') || `<span class="detail-none">—</span>`
+            : `<span class="detail-none">—</span>`;
+
+        const charHTML = charIds.length
+            ? charIds.map(id => {
+                const c = charMap[id];
+                if (!c) return '';
+                const initials = c.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+                return `<button type="button" class="detail-char-avatar detail-link" data-char-id="${id}">
+                    ${c.imgUrl
+                        ? `<img src="${c.imgUrl}" alt="${c.name}">`
+                        : `<div class="detail-char-avatar__initials">${initials}</div>`
+                    }
+                    <span>${c.name}</span>
+                </button>`;
+              }).filter(Boolean).join('') || `<span class="detail-none">—</span>`
+            : `<span class="detail-none">—</span>`;
+
+        const relatedSection = (storyIds.length || charIds.length) ? `
+            <div class="detail-divider"></div>
+            <span class="detail-section-label">Related Stories</span>
+            <div class="detail-tags">${storyHTML}</div>
+            <span class="detail-section-label">Related Characters</span>
+            <div class="detail-char-avatars">${charHTML}</div>
+        ` : '';
+
+        el.innerHTML = `
+            <span class="detail-cat-label">${cat}</span>
+            <h2 class="detail-title">${theme}</h2>
+            <div class="detail-divider"></div>
+            <p class="detail-desc">${desc || 'No explanation available yet.'}</p>
+            ${relatedSection}
+        `;
+    }
+
+    (async () => {
+        const themesLeft = document.getElementById('themes-left');
+        const statsStrip = document.getElementById('themes-stats');
+
+        try {
+            const [bookRecords, charRecords, themeRecords] = await Promise.all([
+                fetchAllRecords(TABLES.books, { skipView: true }),
+                fetchAllRecords(TABLES.characters),
+                fetchAllRecords(TABLES.themes, {
+                    sort: [{ field: 'Theme Category', direction: 'asc' }]
+                })
+            ]);
+
+            bookRecords.forEach(r => {
+                const f = r.fields;
+                const REC_PAT = /^rec[A-Za-z0-9]{8,}$/;
+                function resolve(field) {
+                    if (!field) return '';
+                    const arr = Array.isArray(field) ? field : [field];
+                    return arr.map(v => String(v).trim()).filter(v => v && !REC_PAT.test(v)).join(', ');
+                }
+                function scan(pattern) {
+                    for (const k of Object.keys(f)) {
+                        if (pattern.test(k)) { const v = resolve(f[k]); if (v) return v; }
+                    }
+                    return '';
+                }
+                const authors = scan(/author/i);
+                const illustrators = scan(/illustrat/i);
+                const coverField = f['Cover Photo'];
+                bookMap[r.id] = {
+                    id:        r.id,
+                    // Title may be a lookup array — take the first clean (non-ID) value only
+                    title:     (Array.isArray(f['Title'])
+                                    ? f['Title'].map(v => String(v).trim()).find(v => v && !REC_PAT.test(v))
+                                    : f['Title'])
+                               || 'Untitled',
+                    coverUrl:  coverField && Array.isArray(coverField) && coverField.length ? coverField[0].url : null,
+                    language:  f['Language'] || '',
+                    bookType:  f['Book Type'] || '',
+                    price:     f['Retail Price'] || null,
+                    published: f['Published'] || '',
+                    author:    authors === illustrators ? authors : [authors, illustrators].filter(Boolean).join(' / '),
+                };
+            });
+            charRecords.forEach(r => {
+                const f = r.fields;
+                const imgField = f['Image'];
+                const imgUrl = imgField && Array.isArray(imgField) && imgField.length ? imgField[0].url : null;
+
+                // Resolve linked fields the same way characters.html does
+                function getCharField(...keys) {
+                    for (const k of keys) {
+                        const v = cleanNames(Array.isArray(f[k]) ? f[k] : f[k] ? [f[k]] : []);
+                        if (v.length) return v.join(', ');
+                    }
+                    // Also try pattern-matched lookup fields
+                    const pattern = new RegExp(keys[0].replace(/\s/g,'.*'), 'i');
+                    for (const key of Object.keys(f)) {
+                        if (pattern.test(key)) {
+                            const v = cleanNames(Array.isArray(f[key]) ? f[key] : f[key] ? [f[key]] : []);
+                            if (v.length) return v.join(', ');
+                        }
+                    }
+                    return '';
+                }
+
+                charMap[r.id] = {
+                    name:   f['Name'] || 'Unknown',
+                    imgUrl,
+                    type:   getCharField('Character Type', 'Type'),
+                    desc:   f['Description'] || f['Bio'] || f['Notes'] || f['Summary'] || '',
+                    books:  getCharField('Appears in Book', 'Book', 'Title'),
+                    traits: getCharField('Character Traits', 'Traits'),
+                };
+            });
+
+            if (!themeRecords.length) {
+                themesLeft.innerHTML = '<p style="font-style:italic;color:var(--color-ink-muted);">No themes found.</p>';
+                return;
+            }
+
+            const byCategory  = {};
+            themeRecords.forEach(r => {
+                const cat = r.fields['Theme Category'] || 'Other';
+                if (!byCategory[cat]) byCategory[cat] = [];
+                byCategory[cat].push(r.fields);
+            });
+
+            const categories  = Object.keys(byCategory);
+            const totalThemes = themeRecords.length;
+
+            statsStrip.innerHTML = `
+                <span class="stat-pill"><strong>${totalThemes}</strong> themes</span>
+                <span class="stat-pill"><strong>${categories.length}</strong> categories</span>
+                <span class="stat-pill" style="font-style:italic;font-weight:400;color:var(--color-ink-muted);">Select any theme to explore it →</span>
+            `;
+
+            themesLeft.innerHTML = '';
+
+            categories.forEach((cat, ci) => {
+                const block = document.createElement('div');
+                block.className = 'category-block';
+                block.style.animationDelay = `${ci * 80}ms`;
+
+                const heading = document.createElement('div');
+                heading.className = 'category-heading';
+                heading.innerHTML = `
+                    <div class="category-heading-line left"></div>
+                    <span>${cat}</span>
+                    <div class="category-heading-line"></div>
+                `;
+
+                const tagsRow = document.createElement('div');
+                tagsRow.className = 'theme-tags';
+
+                byCategory[cat].forEach(f => {
+                    const theme = f['Themes'] || 'Unnamed';
+                    const tag   = document.createElement('button');
+                    tag.type      = 'button';
+                    tag.className = 'theme-tag';
+                    tag.textContent = theme;
+
+                    tag.onclick = () => {
+                        document.querySelectorAll('.theme-tag').forEach(t => t.classList.remove('active'));
+                        tag.classList.add('active');
+                        showDetail(theme, cat, f);
+                        const panel = document.getElementById('detail-panel');
+                        panel.scrollTop = 0;
+                        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    };
+
+                    tagsRow.appendChild(tag);
+                });
+
+                block.appendChild(heading);
+                block.appendChild(tagsRow);
+                themesLeft.appendChild(block);
+            });
+
+            // Auto-select the first theme so the panel is never empty
+            const firstTag = themesLeft.querySelector('.theme-tag');
+            if (firstTag) firstTag.click();
+
+        } catch (err) {
+            themesLeft.innerHTML = `
+                <div style="text-align:center;padding:4rem 1rem;">
+                    <p style="color:#c00;">⚠️ Could not load themes: ${err.message}</p>
+                    <p style="font-size:0.85rem;color:var(--color-ink-muted);margin-top:0.5rem;">Check your Airtable token in airtable.js</p>
+                </div>`;
+        }
+    })();
+    </script>
+
+    <style>
+    /* ── Book modal layout ───────────────────────────────────── */
+    .book-modal { max-width: 680px; }
+
+    .book-modal-inner {
+        display: flex;
+        gap: 0;
+    }
+    .book-modal-cover {
+        flex: 0 0 220px;
+        background: var(--color-parchment-2);
+        border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+        overflow: hidden;
+        display: flex;
+        align-items: stretch;
+    }
+    .book-modal-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .book-modal-cover-placeholder {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--color-ink-muted);
+    }
+    .book-modal-body {
+        flex: 1;
+        padding: 2rem 2rem 1.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+    .book-modal-badge {
+        font-family: var(--font-ui);
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+        border: 1px solid var(--color-border-soft);
+        border-radius: 99px;
+        padding: 0.3rem 0.75rem;
+        display: inline-block;
+        margin-bottom: 0.85rem;
+        align-self: flex-start;
+    }
+    .book-modal-title {
+        font-family: var(--font-display);
+        font-size: 1.9rem;
+        color: var(--color-ocean);
+        line-height: 1.15;
+        margin-bottom: 1.25rem;
+    }
+    .book-modal-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.9rem 1.5rem;
+        border: 1px solid var(--color-border-soft);
+        border-radius: var(--radius-sm);
+        padding: 1rem 1.1rem;
+        margin-bottom: 1.25rem;
+        background: rgba(255,255,255,0.5);
+    }
+    .book-modal-meta-item small {
+        font-family: var(--font-ui);
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+    .book-modal-meta-item p {
+        font-family: var(--font-ui);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--color-ink);
+        margin: 0;
+    }
+    .book-modal-price {
+        grid-column: span 2;
+        border-top: 1px solid var(--color-border-soft);
+        padding-top: 0.85rem;
+        margin-top: 0.1rem;
+    }
+    .book-modal-price p {
+        font-family: var(--font-display);
+        font-size: 1.6rem !important;
+        color: var(--color-coral) !important;
+        font-weight: 600;
+    }
+    .book-modal-actions {
+        display: flex;
+        gap: 0.6rem;
+        margin-top: auto;
+        padding-top: 0.5rem;
+    }
+    .book-modal-actions .btn-cart-modal {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1rem;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-ui);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        border: 2px solid var(--color-teal);
+        background: white;
+        color: var(--color-teal);
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .book-modal-actions .btn-cart-modal:hover {
+        background: var(--color-teal-light);
+    }
+    .book-modal-actions .btn-cart-modal.in-cart {
+        background: var(--color-teal);
+        color: white;
+    }
+    .book-modal-actions .btn-cart-modal.in-cart:hover {
+        background: var(--color-coral);
+        border-color: var(--color-coral);
+    }
+    .book-modal-actions .btn-details-modal {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 1rem;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-ui);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--color-parchment-2);
+        border: 1.5px solid var(--color-border-soft);
+        color: var(--color-ink-soft);
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .book-modal-actions .btn-details-modal:hover {
+        background: var(--color-border-soft);
+        color: var(--color-ocean);
+    }
+
+    @media (max-width: 600px) {
+        .book-modal-inner { flex-direction: column; }
+        .book-modal-cover {
+            flex: 0 0 200px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+    }
+    </style>
+
+    <script>
+    // ── Book modal ─────────────────────────────────────────────
+    const bookBackdrop    = document.getElementById('book-modal-backdrop');
+    const bookModalClose  = document.getElementById('book-modal-close');
+    const bookModalContent = document.getElementById('book-modal-content');
+
+    let _activeBookId = null;
+
+    function openBookModal(bookId) {
+        const b = bookMap[bookId];
+        if (!b) return;
+        _activeBookId = bookId;
+
+        const inCart = Cart.has(bookId);
+        const badge  = [b.bookType, b.language].filter(Boolean).join(' · ').toUpperCase();
+
+        bookModalContent.innerHTML = `
+            <div class="book-modal-inner">
+                <div class="book-modal-cover">
+                    ${b.coverUrl
+                        ? `<img src="${b.coverUrl}" alt="${b.title}">`
+                        : `<div class="book-modal-cover-placeholder">📖</div>`
+                    }
+                </div>
+                <div class="book-modal-body">
+                    ${badge ? `<span class="book-modal-badge">${badge}</span>` : ''}
+                    <h2 class="book-modal-title">${b.title}</h2>
+                    <div class="book-modal-meta">
+                        ${b.author ? `<div class="book-modal-meta-item">
+                            <small>Author &amp; Illustrator</small>
+                            <p>${b.author}</p>
+                        </div>` : ''}
+                        ${b.published ? `<div class="book-modal-meta-item">
+                            <small>Published</small>
+                            <p>${b.published}</p>
+                        </div>` : ''}
+                        <div class="book-modal-meta-item book-modal-price">
+                            <small>Retail Price</small>
+                            <p>${b.price ? `MVR ${b.price}` : 'Coming Soon'}</p>
+                        </div>
+                    </div>
+                    <div class="book-modal-actions">
+                        ${b.price ? `<button class="btn-cart-modal${inCart ? ' in-cart' : ''}" id="bm-cart-btn" data-id="${bookId}">
+                            🛒 ${inCart ? '✓ In Cart' : 'Add to Cart'}
+                        </button>` : ''}
+                        <a href="book-details.html?id=${encodeURIComponent(bookId)}" class="btn-details-modal">
+                            Full Details →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Wire cart button
+        const cartBtn = bookModalContent.querySelector('#bm-cart-btn');
+        if (cartBtn) {
+            cartBtn.addEventListener('click', () => {
+                const id = cartBtn.dataset.id;
+                if (Cart.has(id)) {
+                    Cart.remove(id);
+                    cartBtn.classList.remove('in-cart');
+                    cartBtn.innerHTML = '🛒 Add to Cart';
+                } else {
+                    Cart.add({ id, title: b.title, language: b.language, price: b.price ? parseFloat(b.price) : null, coverUrl: b.coverUrl || null });
+                    cartBtn.classList.add('in-cart');
+                    cartBtn.innerHTML = '🛒 ✓ In Cart';
+                }
+            });
+        }
+
+        bookBackdrop.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeBookModal() {
+        bookBackdrop.classList.remove('is-open');
+        document.body.style.overflow = '';
+        _activeBookId = null;
+    }
+
+    bookBackdrop.addEventListener('click', e => { if (e.target === bookBackdrop) closeBookModal(); });
+    bookModalClose.addEventListener('click', closeBookModal);
+    // Escape closes whichever modal is open (book takes priority over char since it's newer)
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            if (bookBackdrop.classList.contains('is-open')) closeBookModal();
+            else closeCharModal();
+        }
+    });
+    </script>
+</body>

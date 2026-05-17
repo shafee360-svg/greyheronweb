@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folktales of the Maldives | Grey Heron Books</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="home-redesign.css?v=2">
+    <script src="components.js?v=3"></script>
+    <script src="airtable.js?v=3"></script>
+    <script>
+      // Persisted tweak defaults — the host rewrites this block via __edit_mode_set_keys.
+      window.__GH_DEFAULTS = /*EDITMODE-BEGIN*/{
+        "palette": "manuscript",
+        "motifs": "bold",
+        "hero": "collage"
+      }/*EDITMODE-END*/;
+    </script>
+    <script src="gh-extras.js?v=1"></script>
+</head>
+<body class="home-redesign" data-palette="manuscript" data-motifs="bold" data-hero="collage" data-screen-label="Home">
+
+    <div id="site-header"></div>
+
+    <main>
+
+        <!-- ============================================================
+             HERO
+             ============================================================ -->
+        <section class="hr-hero" data-comment-anchor="home-hero">
+
+            <div class="hr-hero__atmosphere"></div>
+
+            <svg class="hr-corner hr-corner--tl" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-corner hr-corner--tr" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-corner hr-corner--bl" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-corner hr-corner--br" aria-hidden="true"><use href="#m-leaf"/></svg>
+
+            <svg class="hr-watermark" aria-hidden="true"><use href="#m-heron"/></svg>
+
+            <div class="hr-hero__inner">
+
+                <div class="hr-rule">
+                    <span class="hr-rule__line"></span>
+                    <svg class="hr-rule__glyph" aria-hidden="true"><use href="#m-glyph"/></svg>
+                    <span class="hr-rule__line"></span>
+                </div>
+
+                <span class="hr-eyebrow">Grey Heron Books &middot; Maldives</span>
+
+                <h1 class="hr-title">
+                    Step Into a World
+                    <em>of Island Magic</em>
+                </h1>
+
+                <p class="hr-sub">
+                    Timeless folklore and vibrant stories of the Maldives,<br>
+                    kept alive for the next generation.
+                </p>
+
+                <div class="hr-collage" id="hero-collage" aria-label="Featured covers">
+                    <div class="hr-collage__plate is-loading"><span class="hr-collage__inner"></span></div>
+                    <div class="hr-collage__plate is-loading"><span class="hr-collage__inner"></span></div>
+                    <div class="hr-collage__plate is-loading"><span class="hr-collage__inner"></span></div>
+                </div>
+
+                <a href="books.html" class="hr-cta">
+                    <span>Explore the Collection</span>
+                    <span class="hr-cta__arrow" aria-hidden="true">→</span>
+                </a>
+
+            </div>
+
+            <svg class="hr-wave" preserveAspectRatio="none" viewBox="0 0 1200 80" aria-hidden="true">
+                <use href="#m-wave"/>
+            </svg>
+
+        </section>
+
+
+        <!-- ============================================================
+             MANIFESTO
+             ============================================================ -->
+        <section class="hr-manifesto" data-comment-anchor="home-manifesto">
+
+            <svg class="hr-manifesto__leaf hr-manifesto__leaf--l" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-manifesto__leaf hr-manifesto__leaf--r" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-heron-mark" aria-hidden="true"><use href="#m-heron"/></svg>
+
+            <div class="hr-manifesto__inner">
+
+                <div class="hr-rule" style="color: var(--hr-gold);">
+                    <span class="hr-rule__line"></span>
+                    <svg class="hr-rule__glyph" aria-hidden="true"><use href="#m-glyph"/></svg>
+                    <span class="hr-rule__line"></span>
+                </div>
+
+                <span class="hr-eyebrow hr-eyebrow--ink">Our Mission</span>
+
+                <h2 class="hr-section-title">
+                    The Heart of <em>the Stories</em>
+                </h2>
+
+                <div class="hr-manifesto__body">
+                    <p class="hr-manifesto__lede">
+                        Maldivian folklore offers a rich window into the culture, language,
+                        beliefs, and everyday life of the Maldivian people. Passed down
+                        orally for generations, these stories reflect the unique worldview
+                        of a fragile island nation.
+                    </p>
+                    <p>
+                        Our collection features <strong>14 titles</strong> retold with great
+                        respect for their originality. We believe in the value of human
+                        creativity &mdash; <strong>no AI tools</strong> are used in the
+                        creation of our artwork. Each illustration is crafted with care
+                        and cultural sensitivity.
+                    </p>
+                </div>
+
+                <div class="hr-pillars">
+                    <div class="hr-pillar">
+                        <svg class="hr-pillar__icon" aria-hidden="true"><use href="#i-oral"/></svg>
+                        <span class="hr-pillar__label">Oral Tradition</span>
+                        <span class="hr-pillar__title">Faithful to the voices of elders</span>
+                    </div>
+                    <div class="hr-pillar">
+                        <svg class="hr-pillar__icon" aria-hidden="true"><use href="#i-hand"/></svg>
+                        <span class="hr-pillar__label">Human-Crafted</span>
+                        <span class="hr-pillar__title">Every illustration made by hand</span>
+                    </div>
+                    <div class="hr-pillar">
+                        <svg class="hr-pillar__icon" aria-hidden="true"><use href="#i-book"/></svg>
+                        <span class="hr-pillar__label">Fourteen Titles</span>
+                        <span class="hr-pillar__title">A growing folkloric library</span>
+                    </div>
+                </div>
+
+                <div class="hr-manifesto__cta">
+                    <a href="about.html" class="hr-cta">
+                        <span>Read Our Full Story</span>
+                        <span class="hr-cta__arrow" aria-hidden="true">→</span>
+                    </a>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ============================================================
+             FEEDBACK
+             ============================================================ -->
+        <section class="hr-feedback" data-comment-anchor="home-feedback">
+
+            <svg class="hr-feedback__coral hr-feedback__coral--l" aria-hidden="true"><use href="#m-coral"/></svg>
+            <svg class="hr-feedback__coral hr-feedback__coral--r" aria-hidden="true"><use href="#m-coral"/></svg>
+
+            <div class="hr-feedback__inner">
+
+                <div class="hr-rule" style="color: var(--hr-gold);">
+                    <span class="hr-rule__line"></span>
+                    <svg class="hr-rule__glyph" aria-hidden="true"><use href="#m-glyph"/></svg>
+                    <span class="hr-rule__line"></span>
+                </div>
+
+                <span class="hr-eyebrow hr-eyebrow--ink">Kind Words</span>
+
+                <h2 class="hr-section-title">
+                    Letters from <em>Readers</em>
+                </h2>
+
+                <p class="hr-sub" style="margin-bottom: 0;">
+                    Moments shared by families and readers across the islands.
+                </p>
+
+                <div class="feedback-stage" id="feedback-stage">
+                    <div class="spinner-wrap"><div class="spinner"></div></div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="site-footer"></div>
+
+
+    <!-- ============================================================
+         AIRTABLE WIRING
+         ============================================================ -->
+    <script>
+    // ── Hero collage: cycle through real Airtable covers ──
+    (async () => {
+        const collage = document.getElementById('hero-collage');
+        const INTERVAL_MS = 3500;
+        let allCovers = [];
+        let usedIndices = [];
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        function pickThree() {
+            if (usedIndices.length + 3 > allCovers.length) usedIndices = [];
+            const avail = allCovers.map((_, i) => i).filter(i => !usedIndices.includes(i));
+            const chosen = shuffle(avail).slice(0, 3);
+            usedIndices.push(...chosen);
+            return chosen.map(i => allCovers[i]);
+        }
+        function renderCovers(covers) {
+            const plates = collage.querySelectorAll('.hr-collage__plate');
+            covers.forEach((cover, i) => {
+                const plate = plates[i];
+                if (!plate) return;
+                const img = plate.querySelector('img');
+                if (!img) return;
+                img.style.opacity = '0';
+                setTimeout(() => {
+                    img.src = cover.url;
+                    img.alt = cover.title;
+                    img.onload = () => { img.style.opacity = '1'; };
+                    if (img.complete) img.style.opacity = '1';
+                }, 300);
+            });
+        }
+
+        try {
+            const records = await fetchAllRecords(TABLES.books);
+            allCovers = records
+                .filter(r => getAttachmentUrl(r.fields['Cover Photo']))
+                .map(r => ({
+                    url:   getAttachmentUrl(r.fields['Cover Photo']),
+                    title: r.fields['Title'] || 'Book cover',
+                }));
+
+            if (!allCovers.length) { collage.style.display = 'none'; return; }
+
+            const first = pickThree();
+            collage.innerHTML = first.map(cover => `
+                <div class="hr-collage__plate">
+                    <img src="${cover.url}" alt="${cover.title}" loading="eager"
+                         style="transition: opacity 0.35s ease;">
+                </div>
+            `).join('');
+
+            if (allCovers.length > 3) {
+                setInterval(() => renderCovers(pickThree()), INTERVAL_MS);
+            }
+        } catch (err) {
+            collage.style.display = 'none';
+            console.error('Hero collage error:', err.message);
+        }
+    })();
+
+    // ── Feedback carousel ──
+    (async () => {
+        const stage = document.getElementById('feedback-stage');
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'feedback-lightbox-backdrop';
+        const lbImg = document.createElement('img');
+        backdrop.appendChild(lbImg);
+        document.body.appendChild(backdrop);
+
+        function openLightbox(src) {
+            lbImg.src = src;
+            backdrop.classList.add('is-visible');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            backdrop.classList.remove('is-visible');
+            document.body.style.overflow = '';
+        }
+        backdrop.addEventListener('click', closeLightbox);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+        try {
+            const records = await fetchAllRecords(TABLES.feedback, { skipView: true });
+            const items = records
+                .filter(r => r.fields['Images'] && r.fields['Images'].length)
+                .map(r => r.fields['Images'][0].url);
+
+            if (!items.length) { stage.innerHTML = ''; return; }
+
+            const total = items.length;
+            let current = Math.floor(Math.random() * total);
+            function mod(n, m) { return ((n % m) + m) % m; }
+
+            stage.innerHTML = `
+                <div class="fbc-wrap">
+                    <button class="fbc-arrow fbc-arrow--prev" aria-label="Previous">&#8592;</button>
+                    <div class="fbc-track" id="fbc-track"></div>
+                    <button class="fbc-arrow fbc-arrow--next" aria-label="Next">&#8594;</button>
+                </div>
+                <p class="fbc-counter" id="fbc-counter"></p>
+            `;
+            const track = document.getElementById('fbc-track');
+            const counter = document.getElementById('fbc-counter');
+
+            function render() {
+                track.innerHTML = '';
+                [-2, -1, 0, 1, 2].forEach(offset => {
+                    const idx = mod(current + offset, total);
+                    const div = document.createElement('div');
+                    div.className = 'fbc-card' +
+                        (offset === 0 ? ' fbc-card--center' : '') +
+                        (Math.abs(offset) === 1 ? ' fbc-card--side' : '') +
+                        (Math.abs(offset) === 2 ? ' fbc-card--far' : '');
+                    div.innerHTML = `<img src="${items[idx]}" alt="Feedback" loading="lazy">`;
+                    if (offset === 0) {
+                        div.addEventListener('click', () => openLightbox(items[idx]));
+                    } else {
+                        div.addEventListener('click', () => { current = idx; render(); });
+                    }
+                    track.appendChild(div);
+                });
+                counter.textContent = `${current + 1} of ${total}`;
+            }
+            render();
+
+            document.querySelector('.fbc-arrow--prev').addEventListener('click', () => { current = mod(current - 1, total); render(); });
+            document.querySelector('.fbc-arrow--next').addEventListener('click', () => { current = mod(current + 1, total); render(); });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft')  { current = mod(current - 1, total); render(); }
+                if (e.key === 'ArrowRight') { current = mod(current + 1, total); render(); }
+            });
+        } catch (err) {
+            stage.innerHTML = '';
+            console.error('Feedback carousel error:', err.message);
+        }
+    })();
+    </script>
+
+</body>
+</html>
