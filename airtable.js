@@ -3,8 +3,18 @@
 //  Include this script on every page that needs live data.
 // ============================================================
 
-const AIRTABLE_TOKEN = 'YOUR_AIRTABLE_PAT_TOKEN_HERE'; // ← paste your pat... token here
-const BASE_ID        = 'appRrScZ2TSQYq0kL';
+const BASE_ID = 'appRrScZ2TSQYq0kL';
+const AIRTABLE_PROXY = '/.netlify/functions/airtable-proxy';
+const IS_LOCAL_AIRTABLE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const LOCAL_AIRTABLE_TOKEN_KEY = 'greyHeronAirtableToken';
+
+function getLocalAirtableToken() {
+  if (window.AIRTABLE_TOKEN) return window.AIRTABLE_TOKEN;
+  if (window.localStorage) return window.localStorage.getItem(LOCAL_AIRTABLE_TOKEN_KEY);
+  return null;
+}
+
+const AIRTABLE_TOKEN = IS_LOCAL_AIRTABLE ? getLocalAirtableToken() : null;
 
 // ── Table names (must match exactly) ──
 const TABLES = {
@@ -39,33 +49,76 @@ if (window.location.protocol === 'file:') {
 }
 
 // ── Core fetch helper (handles Airtable pagination automatically) ──
+function buildAirtableProxyUrl(params = {}) {
+  const url = new URL(AIRTABLE_PROXY, window.location.origin);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value == null) return;
+    if (Array.isArray(value)) {
+      value.forEach(v => url.searchParams.append(key, v));
+    } else {
+      url.searchParams.set(key, value);
+    }
+  });
+  return url.toString();
+}
+
+function buildAirtableDirectUrl(tableName, params = {}, record = null) {
+  const url = new URL(`https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(tableName)}`);
+  if (record) {
+    url.pathname += `/${record}`;
+    return url.toString();
+  }
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value == null) return;
+    if (Array.isArray(value)) {
+      value.forEach(v => url.searchParams.append(key, v));
+    } else {
+      url.searchParams.set(key, value);
+    }
+  });
+  return url.toString();
+}
+
+async function fetchAirtableUrl(url) {
+  if (IS_LOCAL_AIRTABLE) {
+    if (!AIRTABLE_TOKEN) {
+      throw new Error('Local Airtable token not found. Set it in localStorage with localStorage.setItem("greyHeronAirtableToken", "<YOUR_TOKEN>") and reload.');
+    }
+    return fetch(url, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+      },
+    });
+  }
+  return fetch(url);
+}
+
 async function fetchAllRecords(tableName, options = {}) {
   const { filterFormula, fields, sort, skipView } = options;
-  const headers = {
-    'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
-    'Content-Type': 'application/json',
-  };
-
   let records = [];
-  let offset  = null;
+  let offset = null;
 
   do {
-    const params = new URLSearchParams({ pageSize: 100 });
+    const params = {
+      table: tableName,
+      pageSize: 100,
+    };
 
-    // Apply the view ID unless skipView is set
     const viewId = VIEWS[tableName];
-    if (viewId && !skipView) params.set('view', viewId);
+    if (viewId && !skipView) params.view = viewId;
+    if (filterFormula) params.filterByFormula = filterFormula;
+    if (offset) params.offset = offset;
+    if (fields) params['fields[]'] = fields;
+    if (sort) {
+      sort.forEach((s, i) => {
+        params[`sort[${i}][field]`] = s.field;
+        params[`sort[${i}][direction]`] = s.direction || 'asc';
+      });
+    }
 
-    if (filterFormula) params.set('filterByFormula', filterFormula);
-    if (offset)        params.set('offset', offset);
-    if (fields)        fields.forEach(f => params.append('fields[]', f));
-    if (sort)          sort.forEach((s, i) => {
-      params.set(`sort[${i}][field]`, s.field);
-      params.set(`sort[${i}][direction]`, s.direction || 'asc');
-    });
-
-    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(tableName)}?${params}`;
-    const res  = await fetch(url, { headers });
+    const url = IS_LOCAL_AIRTABLE ? buildAirtableDirectUrl(tableName, params) : buildAirtableProxyUrl(params);
+    const res = await fetchAirtableUrl(url);
 
     if (!res.ok) {
       const err = await res.json();

@@ -117,9 +117,20 @@
             let record;
 
             if (idParam.startsWith('rec')) {
-                const headers = { 'Authorization': `Bearer ${AIRTABLE_TOKEN}` };
-                const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLES.books)}/${idParam}`;
-                const res = await fetch(url, { headers });
+                let res;
+                if (IS_LOCAL_AIRTABLE) {
+                    const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLES.books)}/${idParam}`;
+                    res = await fetch(url, {
+                        headers: {
+                            Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+                        },
+                    });
+                } else {
+                    const proxyUrl = new URL('/.netlify/functions/airtable-proxy', window.location.origin);
+                    proxyUrl.searchParams.set('table', TABLES.books);
+                    proxyUrl.searchParams.set('record', idParam);
+                    res = await fetch(proxyUrl.toString());
+                }
                 if (!res.ok) throw new Error('Book not found');
                 record = await res.json();
             } else {

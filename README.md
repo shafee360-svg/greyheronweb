@@ -104,6 +104,22 @@ Open with **VS Code Live Server** (right-click any HTML file → *Open with Live
 
 ---
 
+## Deploying with Netlify
+
+This site is now configured to use a Netlify serverless function at `/.netlify/functions/airtable-proxy`.
+
+1. Push the code to GitHub.
+2. Go to https://app.netlify.com and create a new site from Git.
+3. Connect your `shafee360-svg/greyheronweb` repository.
+4. Set the environment variables in Netlify:
+   - `AIRTABLE_BASE_ID` = `appRrScZ2TSQYq0kL`
+   - `AIRTABLE_TOKEN` = your Airtable personal access token
+5. Deploy the site. Netlify will publish the static files from the repo root and run the serverless function automatically.
+
+This is a free-tier-friendly setup for temporary deployment.
+
+---
+
 ## Key Design Decisions
 
 - **No framework** — pure vanilla HTML, CSS, and JS
@@ -115,4 +131,7 @@ Open with **VS Code Live Server** (right-click any HTML file → *Open with Live
 
 ## Security Note
 
-`airtable.js` contains a hardcoded Airtable personal access token. If this project is ever pushed to a public repository, rotate the token immediately in your Airtable account settings.
+This project now uses a Netlify serverless function for Airtable access, so the token is stored in Netlify environment variables instead of hardcoded in `airtable.js`.
+
+If you change providers, keep the token secret and do not push it into GitHub.
+
