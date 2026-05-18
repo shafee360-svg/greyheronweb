@@ -57,6 +57,51 @@
             <path d="M130 160 Q 135 140 130 120 Q 125 108 132 96 Q 138 86 134 72 Q 130 60 122 56" stroke="currentColor" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
           </g>
         </symbol>
+        <symbol id="m-palm" viewBox="0 0 160 300">
+          <g fill="currentColor">
+            <!-- Trunk: from crown (88,110) down to base -->
+            <path d="M 68 300 Q 72 240 76 195 Q 80 155 84 130 Q 87 118 88 110
+                     L 96 112 Q 96 124 93 138 Q 89 162 85 200 Q 81 244 78 300 Z"
+                  opacity="0.88"/>
+            <!-- Frond: lower-left droop -->
+            <path d="M 88 110 Q 50 128 14 168 Q 48 136 74 120 Q 83 114 88 110 Z" opacity="0.9"/>
+            <!-- Frond: left -->
+            <path d="M 88 110 Q 46 104 6 116 Q 44 100 76 108 Q 84 110 88 110 Z" opacity="0.85"/>
+            <!-- Frond: upper-left -->
+            <path d="M 88 110 Q 58 84 36 58 Q 60 80 78 98 Q 85 106 88 110 Z" opacity="0.9"/>
+            <!-- Frond: upper (slight lean) -->
+            <path d="M 88 110 Q 78 76 74 46 Q 90 72 96 104 Q 93 108 88 110 Z" opacity="0.88"/>
+            <!-- Frond: upper-right -->
+            <path d="M 88 110 Q 118 82 140 56 Q 116 84 100 100 Q 93 107 88 110 Z" opacity="0.9"/>
+            <!-- Frond: right -->
+            <path d="M 88 110 Q 130 104 156 114 Q 122 100 100 108 Q 92 110 88 110 Z" opacity="0.85"/>
+            <!-- Frond: lower-right droop -->
+            <path d="M 88 110 Q 126 128 152 166 Q 124 136 106 120 Q 95 114 88 110 Z" opacity="0.9"/>
+            <!-- Coconuts -->
+            <circle cx="84" cy="119" r="7" opacity="0.75"/>
+            <circle cx="95" cy="116" r="6" opacity="0.7"/>
+            <circle cx="89" cy="128" r="5" opacity="0.65"/>
+          </g>
+        </symbol>
+        <symbol id="m-shell-scallop" viewBox="0 0 160 130">
+          <g fill="currentColor">
+            <path d="M80 125 Q 15 105 8 55 Q 5 20 80 8 Q 155 20 152 55 Q 145 105 80 125 Z" opacity="0.9"/>
+            <path d="M80 125 L 15 40" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M80 125 L 38 16" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M80 125 L 65 9"  stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M80 125 L 95 9"  stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M80 125 L 122 16" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M80 125 L 145 40" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.35"/>
+            <path d="M22 52 Q 30 28 50 18 Q 80 8 110 18 Q 130 28 138 52" stroke="currentColor" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
+          </g>
+        </symbol>
+        <symbol id="m-shell-conch" viewBox="0 0 130 180">
+          <g fill="currentColor">
+            <path d="M65 10 Q 95 20 105 55 Q 112 82 104 112 Q 95 138 78 155 Q 62 170 45 168 Q 28 164 22 148 Q 16 132 26 118 Q 38 104 40 84 Q 42 66 34 48 Q 28 34 36 20 Q 46 10 65 10 Z" opacity="0.88"/>
+            <path d="M60 35 Q 78 42 82 62 Q 84 76 72 84 Q 60 90 50 82 Q 42 74 48 62 Q 54 52 66 56" stroke="currentColor" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round"/>
+            <path d="M100 120 Q 115 138 112 158 Q 108 172 98 178" stroke="currentColor" stroke-width="5" fill="none" opacity="0.65" stroke-linecap="round"/>
+          </g>
+        </symbol>
         <symbol id="m-heron" viewBox="0 0 240 280">
           <g fill="currentColor">
             <path d="M70 180 Q 60 150 78 130 Q 100 116 130 122 Q 160 128 178 144 Q 190 156 188 172 Q 184 188 168 192 L 90 198 Q 74 198 70 180 Z"/>

@@ -65,6 +65,52 @@
         }
         .cart-nudge.visible { display: inline-block; }
         .cart-nudge:hover { color: var(--color-coral); }
+
+        .book-extra-details {
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--color-border-soft);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--color-surface);
+        }
+        .book-extra-details summary {
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--color-ink);
+        }
+        .book-extra-details summary::-webkit-details-marker {
+            display: none;
+        }
+        .book-extra-details::marker {
+            display: none;
+        }
+        .book-extra-details[open] summary {
+            background: var(--color-teal-lightest);
+        }
+        .book-extra-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            padding: 1rem 1.25rem 1.25rem;
+        }
+        .book-extra-grid div {
+            min-width: 0;
+        }
+        .book-extra-grid small {
+            display: block;
+            color: var(--color-ink-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.25rem;
+        }
+        .book-extra-grid p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body class="home-redesign" data-palette="manuscript" data-motifs="subtle" data-screen-label="Book Detail">
@@ -74,8 +120,8 @@
     <main>
     <section class="hr-page-hero hr-page-hero--slim" data-comment-anchor="book-detail-band">
         <div class="hr-hero__atmosphere"></div>
-        <svg class="hr-corner hr-corner--tl" aria-hidden="true"><use href="#m-leaf"/></svg>
-        <svg class="hr-corner hr-corner--tr" aria-hidden="true"><use href="#m-leaf"/></svg>
+        <svg class="hr-corner hr-corner--bl" aria-hidden="true"><use href="#m-palm"/></svg>
+        <svg class="hr-corner hr-corner--br" aria-hidden="true"><use href="#m-palm"/></svg>
 
         <div class="hr-page-hero__inner">
             <div class="hr-rule">
@@ -159,30 +205,78 @@
                 return arr.map(v => String(v).trim()).filter(v => v && !REC_ID.test(v)).join(', ');
             }
 
-            function scanNames(pattern) {
-                for (const k of Object.keys(f)) {
-                    if (pattern.test(k)) {
-                        const v = resolveNames(f[k]);
-                        if (v) return v;
-                    }
-                }
-                return '';
+            function resolveNameList(field) {
+                if (!field) return [];
+                const arr = Array.isArray(field) ? field : [field];
+                return arr.map(v => String(v).trim()).filter(v => v && !REC_ID.test(v));
             }
 
-            const authors      = scanNames(/author/i);
-            const illustrators = scanNames(/illustrat/i);
-            const sameCredit   = authors && authors === illustrators;
+            // ── Fetch author & illustrator names from linked records ──
+            let authorNameMap = {};
+            let illustratorNameMap = {};
+
+            try {
+                const authorsRecs = await fetchAllRecords('Authors');
+                authorsRecs.forEach(rec => {
+                    authorNameMap[rec.id] = rec.fields['Name'] || '';
+                });
+
+                const illustratorsRecs = await fetchAllRecords('Illustrators');
+                illustratorsRecs.forEach(rec => {
+                    illustratorNameMap[rec.id] = rec.fields['Name'] || '';
+                });
+            } catch (e) {
+                console.warn('Could not fetch Authors/Illustrators tables:', e);
+            }
+
+            function resolveLinkedNames(field, nameMap) {
+                if (!field) return [];
+                const arr = Array.isArray(field) ? field : [field];
+                return arr
+                    .map(id => nameMap[id] || String(id).trim())
+                    .filter(v => v && !REC_ID.test(v));
+            }
+
+            function scanNames(field) {
+                if (!field) return '';
+                return resolveNames(field);
+            }
+
+            const authorList   = resolveLinkedNames(f['Author'], authorNameMap);
+            const primaryAuthor = authorList[0] || '';
+            const additionalAuthors = authorList.length > 1 ? authorList.slice(1).join(', ') : '';
+            const illustratorList = resolveLinkedNames(f['Illustrator'], illustratorNameMap);
+            const illustrators = illustratorList.join(', ');
+            const sameCredit   = primaryAuthor && illustrators && primaryAuthor === illustrators;
+            const bookSize     = f['size'] || f['Size'] || f['Book Size'] || '';
+            const wordCount    = f['No of Words'] || f['Word Count'] || f['Words'] || '';
+            const pageCount    = f['No of Pages'] || f['Page Count'] || f['Pages'] || '';
 
             let creditsHTML;
             if (sameCredit) {
-                creditsHTML = `<div><small>Author &amp; Illustrator</small><p>${authors}</p></div>`;
+                creditsHTML = `
+                    <div><small>Words &amp; Art by</small><p>${primaryAuthor}</p></div>
+                    ${additionalAuthors ? `<div><small>Additional author${authorList.length > 2 ? 's' : ''}</small><p>${additionalAuthors}</p></div>` : ''}
+                `;
             } else {
                 creditsHTML = `
-                    ${authors      ? `<div><small>Author</small><p>${authors}</p></div>` : ''}
-                    ${illustrators ? `<div><small>Illustrator</small><p>${illustrators}</p></div>` : ''}
-                    ${!authors && !illustrators ? `<div><small>Author &amp; Illustrator</small><p>Shafee Shafeeq</p></div>` : ''}
+                    ${primaryAuthor ? `<div><small>Words by</small><p>${primaryAuthor}</p></div>` : ''}
+                    ${additionalAuthors ? `<div><small>Additional author${authorList.length > 2 ? 's' : ''}</small><p>${additionalAuthors}</p></div>` : ''}
+                    ${illustrators ? `<div><small>Art by</small><p>${illustrators}</p></div>` : ''}
+                    ${!primaryAuthor && !illustrators ? `<div><small>Words &amp; Art by</small><p>Shafee Shafeeq</p></div>` : ''}
                 `;
             }
+
+            const extraDetailsHTML = (bookSize || wordCount || pageCount)
+                ? `<details class="book-extra-details">
+                        <summary>Additional details</summary>
+                        <div class="book-extra-grid">
+                            ${bookSize ? `<div><small>Book size</small><p>${bookSize}</p></div>` : ''}
+                            ${wordCount ? `<div><small>Word count</small><p>${wordCount}</p></div>` : ''}
+                            ${pageCount ? `<div><small>Page count</small><p>${pageCount}</p></div>` : ''}
+                        </div>
+                   </details>`
+                : '';
 
             document.title = `${title} | Folktales of the Maldives`;
 
@@ -293,6 +387,8 @@
                             </div>
                         </div>
 
+                        ${extraDetailsHTML}
+
                         <div class="book-actions">
                             <button
                                 id="detail-cart-btn"
@@ -319,11 +415,6 @@
                 <section class="synopsis-section">
                     <h2>The Story</h2>
                     <p>${synopsis}</p>
-
-                    <hr>
-
-                    <h2>Artistry &amp; Process</h2>
-                    <p>Consistent with the mission of Grey Heron Books, the illustrations for this title are 100% human-made. No AI or artificial intelligence tools were used in the creation of this artwork — every brushstroke carries the authentic spirit of the islands.</p>
 
                     ${sneakPeek ? `
                     <hr>

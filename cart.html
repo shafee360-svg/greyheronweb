@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css?v=3">
     <link rel="stylesheet" href="home-redesign.css?v=2">
     <script src="components.js?v=3"></script>
+    <script src="airtable.js?v=3"></script>
     <script src="cart.js?v=1"></script>
     <script src="gh-extras.js?v=1"></script>
     <style>
@@ -359,8 +360,8 @@
     <main>
         <section class="hr-page-hero" data-comment-anchor="cart-hero">
             <div class="hr-hero__atmosphere"></div>
-            <svg class="hr-corner hr-corner--tl" aria-hidden="true"><use href="#m-leaf"/></svg>
-            <svg class="hr-corner hr-corner--tr" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-corner hr-corner--bl" aria-hidden="true"><use href="#m-palm"/></svg>
+            <svg class="hr-corner hr-corner--br" aria-hidden="true"><use href="#m-palm"/></svg>
             <svg class="hr-watermark" aria-hidden="true"><use href="#m-heron"/></svg>
 
             <div class="hr-page-hero__inner">
@@ -389,9 +390,33 @@
     <div id="site-footer"></div>
 
     <script>
-    const WHATSAPP_NUMBER = 'YOURNUMBER'; // ← replace with your number e.g. 9609991234
+    const WHATSAPP_NUMBER = '9609387095';
 
     const layout = document.getElementById('cart-layout');
+
+    async function refreshCartMetadata() {
+        const items = Cart.getAll();
+        if (!items.length) return;
+
+        await Promise.all(items.map(async item => {
+            try {
+                const url = buildAirtableDirectUrl(TABLES.books, {}, item.id);
+                const response = await fetchAirtableUrl(url);
+                if (!response.ok) return;
+                const data = await response.json();
+                const fields = data.fields || {};
+                const updated = {
+                    title: fields.Title || item.title,
+                    language: fields.Language || item.language,
+                    price: typeof fields.Price === 'number' ? fields.Price : (fields.Price ? parseFloat(fields.Price) : item.price),
+                    coverUrl: getAttachmentUrl(fields.Cover) || item.coverUrl,
+                };
+                Cart.updateItem(item.id, updated);
+            } catch (err) {
+                console.warn('Cart metadata refresh failed for', item.id, err);
+            }
+        }));
+    }
 
     // ── Cart image error fallback (Fix 3) ─────────────────────
     // Airtable attachment URLs can expire between sessions.
@@ -457,9 +482,9 @@
                 grandTotal != null ? `MVR ${grandTotal.toFixed(0)}` : '—';
         }
 
-        // Update WhatsApp link
+        // Update WhatsApp button state
         const waBtn = layout.querySelector('.btn-whatsapp');
-        if (waBtn) waBtn.href = buildWhatsAppURL(items);
+        if (waBtn) waBtn.disabled = items.length === 0;
     }
 
     // ── Build a single cart item row ───────────────────────────
@@ -595,17 +620,16 @@
                         : 'Prices are in Maldivian Rufiyaa (MVR). Delivery charges may apply.'
                     }
                 </p>
-                <a
-                    href="${buildWhatsAppURL(items)}"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <button
+                    type="button"
+                    id="btn-order-whatsapp"
                     class="btn-whatsapp"
                 >
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                     </svg>
                     Order via WhatsApp
-                </a>
+                </button>
                 <button class="btn-clear-cart" id="btn-clear">Clear cart</button>
             </div>
         `;
@@ -623,7 +647,104 @@
 
     // Initial render
     render();
+    refreshCartMetadata();
     </script>
+
+<!-- WhatsApp Order Modal + script -->
+<div id="wa-order-modal" style="display:none;position:fixed;inset:0;z-index:1200;align-items:center;justify-content:center;">
+    <div id="wa-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,0.4)"></div>
+    <div style="background:white;border-radius:8px;width:480px;max-width:94%;padding:1rem;box-shadow:0 20px 40px rgba(0,0,0,0.3);position:relative;margin:4rem auto;">
+        <button id="wa-close" style="position:absolute;right:8px;top:8px;border:none;background:none;font-size:1.4rem;">×</button>
+        <h3 style="margin-top:0;margin-bottom:0.5rem;">Send order via WhatsApp</h3>
+        <form id="wa-order-form" style="margin-top:0.5rem;">
+            <label style="display:block;margin:0.5rem 0;">Name
+                <input name="name" id="wa-name" required style="width:100%;padding:0.5rem;margin-top:0.25rem;">
+            </label>
+            <label style="display:block;margin:0.5rem 0;">Phone
+                <input name="phone" id="wa-phone" required placeholder="e.g. +9609387095" style="width:100%;padding:0.5rem;margin-top:0.25rem;">
+            </label>
+            <label style="display:block;margin:0.5rem 0;">Address
+                <textarea name="address" id="wa-address" required placeholder="Street, house name, island" style="width:100%;padding:0.5rem;margin-top:0.25rem;min-height:80px;"></textarea>
+            </label>
+            <label style="display:block;margin:0.5rem 0;">Country
+                <input name="country" id="wa-country" required placeholder="Maldives" style="width:100%;padding:0.5rem;margin-top:0.25rem;">
+            </label>
+            <p style="font-size:0.88rem;color:#555;margin:0.5rem 0 0;">All fields are required so we can ship your order.</p>
+            <div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;">
+                <button class="btn-whatsapp" type="submit" id="wa-send">Send to WhatsApp</button>
+                <button type="button" id="wa-cancel" class="btn-clear-cart">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function(){
+    function closeModal() {
+        const modal = document.getElementById('wa-order-modal');
+        if (modal) { modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); }
+    }
+    function openModal() {
+        const modal = document.getElementById('wa-order-modal');
+        if (modal) { modal.style.display = 'flex'; modal.setAttribute('aria-hidden','false'); }
+    }
+
+    document.addEventListener('click', function(event) {
+        const button = event.target.closest('#btn-order-whatsapp');
+        if (!button) return;
+        event.preventDefault();
+        openModal();
+        const phoneInput = document.getElementById('wa-phone');
+        if (phoneInput && !phoneInput.value) phoneInput.value = '';
+    });
+
+    const closeBtn = document.getElementById('wa-close');
+    const cancelBtn = document.getElementById('wa-cancel');
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    const backdrop = document.getElementById('wa-backdrop');
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+
+    function buildWhatsAppURLWithCustomer(items, customer) {
+        const lines = items.map(item => {
+            const qty   = item.quantity || 1;
+            const price = item.price != null ? ` — MVR ${item.price} each` : '';
+            return `- ${qty}× ${item.title}${price}`;
+        });
+        const hasAllPrices = items.every(i => i.price != null);
+        const total = hasAllPrices ? `\n\nTotal: MVR ${items.reduce((s, i) => s + i.price * (i.quantity || 1), 0).toFixed(0)}` : '';
+        const customerInfo = `Name: ${customer.name}\nPhone: ${customer.phone}\nAddress: ${customer.address}\nCountry: ${customer.country}`;
+        const msg = `Hello Grey Heron Books,\n\nOrder details:\n${lines.join('\n')}${total}\n\nShipping details:\n${customerInfo}\n\nPlease confirm availability and payment details. Thank you!`;
+        return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    }
+
+    const form = document.getElementById('wa-order-form');
+    if (form) {
+        form.addEventListener('submit', function(e){
+            e.preventDefault();
+            const items = Cart.getAll();
+            if (!items || !items.length) {
+                alert('Your cart is empty.');
+                closeModal();
+                return;
+            }
+            const customer = {
+                name: form.name.value.trim(),
+                phone: form.phone.value.trim(),
+                address: form.address.value.trim(),
+                country: form.country.value.trim(),
+            };
+            if (!customer.name || !customer.phone || !customer.address || !customer.country) {
+                alert('Please fill in all shipping details so we can deliver your order.');
+                return;
+            }
+            const url = buildWhatsAppURLWithCustomer(items, customer);
+            window.open(url, '_blank');
+            closeModal();
+        });
+    }
+})();
+</script>
 
 </body>
 </html>

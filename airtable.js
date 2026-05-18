@@ -8,10 +8,17 @@ const AIRTABLE_PROXY = '/.netlify/functions/airtable-proxy';
 const IS_LOCAL_AIRTABLE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const LOCAL_AIRTABLE_TOKEN_KEY = 'greyHeronAirtableToken';
 
+// Local development token — set once in browser console, never commit a real token here:
+// localStorage.setItem('greyHeronAirtableToken', 'YOUR_AIRTABLE_PAT')
+const LOCAL_DEV_AIRTABLE_TOKEN = '';
+
 function getLocalAirtableToken() {
   if (window.AIRTABLE_TOKEN) return window.AIRTABLE_TOKEN;
-  if (window.localStorage) return window.localStorage.getItem(LOCAL_AIRTABLE_TOKEN_KEY);
-  return null;
+  if (window.localStorage) {
+    const t = window.localStorage.getItem(LOCAL_AIRTABLE_TOKEN_KEY);
+    if (t) return t;
+  }
+  return LOCAL_DEV_AIRTABLE_TOKEN; // fallback for local testing
 }
 
 const AIRTABLE_TOKEN = IS_LOCAL_AIRTABLE ? getLocalAirtableToken() : null;

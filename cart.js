@@ -81,8 +81,12 @@ const Cart = (() => {
     const items = load();
     const existing = items.find(b => b.id === book.id);
     if (existing) {
-      // Already in cart — increment quantity instead of duplicating
+      // Already in cart — increment quantity and refresh stored metadata
       existing.quantity = (existing.quantity || 1) + 1;
+      existing.title = book.title || existing.title;
+      existing.language = book.language || existing.language;
+      existing.price = book.price ?? existing.price;
+      existing.coverUrl = book.coverUrl || existing.coverUrl;
     } else {
       items.push({
         id:       book.id,
@@ -156,6 +160,15 @@ const Cart = (() => {
     notify();
   }
 
+  function updateItem(id, updates) {
+    const items = load();
+    const item = items.find(b => b.id === id);
+    if (!item) return;
+    Object.assign(item, updates);
+    save(items);
+    notify();
+  }
+
   function onUpdate(fn) {
     if (typeof fn === 'function') listeners.push(fn);
   }
@@ -199,6 +212,7 @@ const Cart = (() => {
     incrementQty,
     decrementQty,
     clear,
+    updateItem,
     onUpdate,
     renderIcon,
   };

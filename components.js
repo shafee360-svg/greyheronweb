@@ -88,7 +88,7 @@
       </div>
 
       <div class="site-footer__bottom">
-        <p>&copy; ${new Date().getFullYear()} Grey Heron Books. All Rights Reserved. | Fuvahmulah, Maldives</p>
+        <p>&copy; ${new Date().getFullYear()} Grey Heron Books. All Rights Reserved.</p>
       </div>
     </footer>
   `;

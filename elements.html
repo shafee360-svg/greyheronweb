@@ -18,8 +18,8 @@
     <main>
         <section class="hr-page-hero" data-comment-anchor="themes-hero">
             <div class="hr-hero__atmosphere"></div>
-            <svg class="hr-corner hr-corner--tl" aria-hidden="true"><use href="#m-leaf"/></svg>
-            <svg class="hr-corner hr-corner--tr" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-corner hr-corner--bl" aria-hidden="true"><use href="#m-palm"/></svg>
+            <svg class="hr-corner hr-corner--br" aria-hidden="true"><use href="#m-palm"/></svg>
             <svg class="hr-watermark" aria-hidden="true"><use href="#m-heron"/></svg>
 
             <div class="hr-page-hero__inner">
@@ -96,6 +96,226 @@
 
     const bookMap = {};
     const charMap = {};
+
+    // Simple constellation SVGs mapped by theme key (quick approach)
+    const CONSTELLATIONS = {
+        'Sea': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-teal)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path class="const-line" d="M20 60 L60 20 L110 40 L160 10"/>
+                    <circle cx="20" cy="60" r="2.6" fill="var(--color-teal)"/>
+                    <circle cx="60" cy="20" r="3" fill="var(--color-teal)"/>
+                    <circle cx="110" cy="40" r="2.6" fill="var(--color-teal)"/>
+                    <circle cx="160" cy="10" r="2.6" fill="var(--color-teal)"/>
+                </g>
+            </svg>`,
+        'Nature': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-coral)" stroke-width="1.4">
+                    <path class="const-line" d="M30 30 L70 50 L100 20 L140 45 L180 30"/>
+                    <circle cx="30" cy="30" r="2.4" fill="var(--color-coral)"/>
+                    <circle cx="70" cy="50" r="2.8" fill="var(--color-coral)"/>
+                    <circle cx="100" cy="20" r="2.4" fill="var(--color-coral)"/>
+                    <circle cx="140" cy="45" r="2.4" fill="var(--color-coral)"/>
+                    <circle cx="180" cy="30" r="2.4" fill="var(--color-coral)"/>
+                </g>
+            </svg>`,
+        'Supernatural': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-ink-muted)" stroke-width="1.2">
+                    <path class="const-line" d="M15 70 L55 40 L95 60 L135 25 L175 55"/>
+                    <circle cx="15" cy="70" r="2.2" fill="var(--color-ink-muted)"/>
+                    <circle cx="55" cy="40" r="2.6" fill="var(--color-ink-muted)"/>
+                    <circle cx="95" cy="60" r="2.2" fill="var(--color-ink-muted)"/>
+                    <circle cx="135" cy="25" r="2.2" fill="var(--color-ink-muted)"/>
+                    <circle cx="175" cy="55" r="2.2" fill="var(--color-ink-muted)"/>
+                </g>
+            </svg>`,
+        'Animals': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-ocean)" stroke-width="1.4">
+                    <path class="const-line" d="M20 80 L50 50 L90 70 L130 40 L170 60"/>
+                    <circle cx="20" cy="80" r="2.4" fill="var(--color-ocean)"/>
+                    <circle cx="50" cy="50" r="2.6" fill="var(--color-ocean)"/>
+                    <circle cx="90" cy="70" r="2.4" fill="var(--color-ocean)"/>
+                    <circle cx="130" cy="40" r="2.4" fill="var(--color-ocean)"/>
+                    <circle cx="170" cy="60" r="2.4" fill="var(--color-ocean)"/>
+                </g>
+            </svg>`,
+        'People': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-teal)" stroke-width="1.3">
+                    <path class="const-line" d="M40 20 L60 45 L90 30 L120 55 L150 35"/>
+                    <circle cx="40" cy="20" r="2.6" fill="var(--color-teal)"/>
+                    <circle cx="60" cy="45" r="2.6" fill="var(--color-teal)"/>
+                    <circle cx="90" cy="30" r="2.6" fill="var(--color-teal)"/>
+                    <circle cx="120" cy="55" r="2.6" fill="var(--color-teal)"/>
+                    <circle cx="150" cy="35" r="2.6" fill="var(--color-teal)"/>
+                </g>
+            </svg>`,
+        'Journey': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-coral)" stroke-width="1.2">
+                    <path class="const-line" d="M10 60 L50 40 L90 50 L130 30 L170 45"/>
+                    <circle cx="10" cy="60" r="2.2" fill="var(--color-coral)"/>
+                    <circle cx="50" cy="40" r="2.6" fill="var(--color-coral)"/>
+                    <circle cx="90" cy="50" r="2.2" fill="var(--color-coral)"/>
+                    <circle cx="130" cy="30" r="2.2" fill="var(--color-coral)"/>
+                    <circle cx="170" cy="45" r="2.2" fill="var(--color-coral)"/>
+                </g>
+            </svg>`,
+        'Islands': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-teal)" stroke-width="1.2">
+                    <path class="const-line" d="M25 70 L55 50 L90 65 L125 45 L160 68"/>
+                    <circle cx="25" cy="70" r="2.2" fill="var(--color-teal)"/>
+                    <circle cx="55" cy="50" r="2.6" fill="var(--color-teal)"/>
+                    <circle cx="90" cy="65" r="2.2" fill="var(--color-teal)"/>
+                    <circle cx="125" cy="45" r="2.2" fill="var(--color-teal)"/>
+                    <circle cx="160" cy="68" r="2.2" fill="var(--color-teal)"/>
+                </g>
+            </svg>`,
+        'Night': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-ink-muted)" stroke-width="1.2">
+                    <path class="const-line" d="M20 30 L60 50 L100 28 L140 55 L180 35"/>
+                    <circle cx="20" cy="30" r="2.2" fill="var(--color-ink-muted)"/>
+                    <circle cx="60" cy="50" r="2.6" fill="var(--color-ink-muted)"/>
+                    <circle cx="100" cy="28" r="2.2" fill="var(--color-ink-muted)"/>
+                    <circle cx="140" cy="55" r="2.2" fill="var(--color-ink-muted)"/>
+                    <circle cx="180" cy="35" r="2.2" fill="var(--color-ink-muted)"/>
+                </g>
+            </svg>`,
+        'Magic': `
+            <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                <g fill="none" stroke="var(--color-coral)" stroke-width="1.6">
+                    <path class="const-line" d="M25 50 L60 20 L95 55 L130 25 L165 50"/>
+                    <circle cx="25" cy="50" r="2.8" fill="var(--color-coral)"/>
+                    <circle cx="60" cy="20" r="3" fill="var(--color-coral)"/>
+                    <circle cx="95" cy="55" r="2.8" fill="var(--color-coral)"/>
+                    <circle cx="130" cy="25" r="2.8" fill="var(--color-coral)"/>
+                    <circle cx="165" cy="50" r="2.8" fill="var(--color-coral)"/>
+                </g>
+            </svg>`
+    };
+
+    // Small deterministic PRNG (mulberry32) to generate repeatable constellations per theme
+    function mulberry32(a) {
+        return function() {
+            a |= 0; a = a + 0x6D2B79F5 | 0;
+            var t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+    }
+
+    // Color overrides per keyword for stronger, distinct accents
+    const THEME_COLOR_MAP = {
+        'Sea':    'hsl(178deg 62% 35%)',
+        'Nature': 'hsl(14deg 62% 42%)',
+        'Supernatural': 'hsl(250deg 18% 42%)',
+        'Animals':'hsl(200deg 45% 38%)',
+        'People': 'hsl(170deg 28% 36%)',
+        'Journey':'hsl(10deg 56% 40%)',
+        'Islands':'hsl(190deg 36% 38%)',
+        'Night':  'hsl(230deg 18% 36%)',
+        'Magic':  'hsl(8deg 62% 44%)'
+    };
+
+    function proceduralConstellation(theme) {
+        const seed = Array.from(theme).reduce((s,c)=>s + c.charCodeAt(0), 0) || Date.now();
+        const rnd = mulberry32(seed);
+        const w = 200, h = 100;
+
+        // decide visual variety
+        const pointCount = 3 + Math.floor(rnd() * 6); // 3..8
+        const strokeWidth = +(1 + rnd() * 2.2).toFixed(2);
+        const shapeTypes = ['linear','loop','curved','islands'];
+        const shape = shapeTypes[Math.floor(rnd() * shapeTypes.length)];
+
+        // pick a color from overrides if keyword matches, otherwise use a hue from the seed
+        const keywords = Object.keys(THEME_COLOR_MAP);
+        const matched = keywords.find(k => theme.toLowerCase().includes(k.toLowerCase()));
+        const baseColor = matched ? THEME_COLOR_MAP[matched] : `hsl(${Math.floor(seed % 360)}deg 60% 45%)`;
+
+        // island colours (sandy / earth tones) for island-like themes
+        const islandAccent = 'hsl(37deg 55% 60%)';
+        const useIslandFill = (matched && matched.toLowerCase() === 'islands') || (shape === 'islands');
+        const circleFill = useIslandFill ? islandAccent : baseColor;
+
+        const points = Array.from({length: pointCount}, () => ({ x: +(8 + rnd() * (w-16)).toFixed(1), y: +(8 + rnd() * (h-16)).toFixed(1) }));
+
+        // helper to compute a curved control point between two points
+        function controlBetween(a,b,scale) {
+            const mx = (a.x + b.x)/2;
+            const my = (a.y + b.y)/2;
+            const dx = b.y - a.y;
+            const dy = -(b.x - a.x);
+            const len = Math.sqrt(dx*dx + dy*dy) || 1;
+            const nx = dx / len;
+            const ny = dy / len;
+            return { x: +(mx + nx * scale).toFixed(1), y: +(my + ny * scale).toFixed(1) };
+        }
+
+        let pathD = '';
+
+        if (shape === 'linear') {
+            pathD = 'M ' + points.map(p => `${p.x} ${p.y}`).join(' L ');
+        } else if (shape === 'loop') {
+            pathD = 'M ' + points.map(p => `${p.x} ${p.y}`).join(' L ') + ' Z';
+        } else if (shape === 'curved') {
+            // create smooth quadratic segments
+            pathD = '';
+            for (let i=0;i<points.length-1;i++) {
+                const a = points[i];
+                const b = points[i+1];
+                const scale = 6 + rnd()*22;
+                const c = controlBetween(a,b,scale);
+                if (i===0) pathD += `M ${a.x} ${a.y} Q ${c.x} ${c.y} ${b.x} ${b.y}`;
+                else pathD += ` Q ${c.x} ${c.y} ${b.x} ${b.y}`;
+            }
+        } else { // islands / branches
+            // islands: short curved connectors and island fills
+            const segs = [];
+            for (let i=0;i<points.length-1;i++) {
+                const a = points[i];
+                const b = points[i+1];
+                const scale = 4 + rnd()*14;
+                const c = controlBetween(a,b,scale);
+                segs.push(`${i===0?('M '+a.x+' '+a.y):('') } Q ${c.x} ${c.y} ${b.x} ${b.y}`);
+            }
+            pathD = segs.join(' ');
+        }
+
+        const circles = points.map(p => {
+            const r = +(2 + rnd()*3.2).toFixed(2);
+            // for islands, use filled 'island' look with thin darker stroke
+            if (useIslandFill) {
+                return `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${circleFill}" stroke="rgba(0,0,0,0.08)" stroke-width="0.6" />`;
+            }
+            return `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${circleFill}" />`;
+        }).join('');
+
+        const titleId = 'const-title-' + Math.abs(seed);
+        return `
+            <svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="${titleId}">
+                <title id="${titleId}">Constellation for ${theme}</title>
+                <g fill="none" stroke="${baseColor}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">
+                    <path class="const-line" d="${pathD}" />
+                    ${circles}
+                </g>
+            </svg>`;
+    }
+
+    function getConstellationForTheme(theme) {
+        if (!theme) return '';
+        if (CONSTELLATIONS[theme]) return CONSTELLATIONS[theme];
+        const keywords = Object.keys(CONSTELLATIONS);
+        const found = keywords.find(k => theme.toLowerCase().includes(k.toLowerCase()));
+        if (found) return CONSTELLATIONS[found];
+        // fallback: generate a small procedural constellation so every theme has something unique
+        return proceduralConstellation(theme);
+    }
 
     // Strip raw Airtable record IDs — they look like recXXXXXXXXXX
     const REC_ID = /^rec[A-Za-z0-9]{8,}$/;
@@ -191,13 +411,42 @@
             <div class="detail-char-avatars">${charHTML}</div>
         ` : '';
 
+        const constellationSVG = getConstellationForTheme(theme);
         el.innerHTML = `
+            ${constellationSVG ? `<div class="theme-constellation" role="img" aria-label="Constellation for ${theme}">${constellationSVG}</div>` : ''}
             <span class="detail-cat-label">${cat}</span>
             <h2 class="detail-title">${theme}</h2>
             <div class="detail-divider"></div>
             <p class="detail-desc">${desc || 'No explanation available yet.'}</p>
             ${relatedSection}
         `;
+
+        // Trigger small constellation animations (star twinkle + line redraw)
+        (function animateConstellation(containerEl){
+            const wrap = containerEl.querySelector('.theme-constellation');
+            if (!wrap) return;
+            const svg = wrap.querySelector('svg');
+            if (!svg) return;
+
+            // animate star circles with random delays
+            const stars = svg.querySelectorAll('circle');
+            stars.forEach((s, i) => {
+                const dur = 1.6 + Math.random() * 1.4;
+                s.style.animation = `twinkle ${dur}s infinite`;
+                s.style.animationDelay = `${Math.random() * 0.8}s`;
+            });
+
+            // restart line draw
+            const path = svg.querySelector('.const-line');
+            if (path) {
+                path.style.animation = 'none';
+                void path.getBoundingClientRect();
+                path.style.animation = '';
+                path.classList.remove('replay');
+                void path.offsetWidth;
+                path.classList.add('replay');
+            }
+        })(el);
     }
 
     (async () => {
@@ -340,9 +589,12 @@
                 themesLeft.appendChild(block);
             });
 
-            // Auto-select the first theme so the panel is never empty
-            const firstTag = themesLeft.querySelector('.theme-tag');
-            if (firstTag) firstTag.click();
+            // Auto-select a random theme so the panel is never empty
+            const tags = Array.from(themesLeft.querySelectorAll('.theme-tag'));
+            if (tags.length) {
+                const randomTag = tags[Math.floor(Math.random() * tags.length)];
+                randomTag.click();
+            }
 
         } catch (err) {
             themesLeft.innerHTML = `
@@ -516,6 +768,21 @@
             border-radius: var(--radius-lg) var(--radius-lg) 0 0;
         }
     }
+    /* Constellation visuals for theme detail panel */
+    .theme-constellation { display:flex; justify-content:center; align-items:center; margin-bottom:1rem; }
+    .theme-constellation svg { width: 360px; max-width: 90%; height: auto; display:block; }
+    @media (min-width: 900px) {
+        .theme-constellation svg { width: 520px; }
+    }
+    .theme-constellation .const-line { stroke-dasharray: 200; stroke-dashoffset: 200; opacity:0.95; }
+    .theme-constellation .const-line.replay { animation: draw 1.6s ease forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .theme-constellation circle { transition: opacity 120ms linear, transform 120ms linear; opacity:0.85; }
+    @media (prefers-reduced-motion: reduce) {
+        .theme-constellation .const-line.replay { animation: none !important; }
+        .theme-constellation circle { animation: none !important; transition: none !important; }
+    }
+    @keyframes twinkle { 0% { opacity: 0.28; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.28; transform: scale(0.85); } }
     </style>
 
     <script>
