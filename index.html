@@ -117,7 +117,7 @@
                         fragile island nation.
                     </p>
                     <p>
-                        Our collection features <strong>14 titles</strong> retold with great
+                        Our collection features <strong id="home-title-count">14 titles</strong> retold with great
                         respect for their originality. No AI was used in the writing or the
                         artwork; the whole process is intentionally AI-less. Each illustration
                         is crafted with care and cultural sensitivity.
@@ -137,7 +137,7 @@
                     </div>
                     <div class="hr-pillar">
                         <svg class="hr-pillar__icon" aria-hidden="true"><use href="#i-book"/></svg>
-                        <span class="hr-pillar__label">Fourteen Titles</span>
+                        <span class="hr-pillar__label" id="home-pillar-count">Fourteen Titles</span>
                         <span class="hr-pillar__title">A growing folkloric library</span>
                     </div>
                 </div>
@@ -240,6 +240,18 @@
 
         try {
             const records = await fetchAllRecords(TABLES.books);
+
+            const availableCount = records.filter(r => r.fields['Availability'] !== 'Upcoming').length;
+            if (availableCount) {
+                const words = ['Zero','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten',
+                               'Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen','Twenty'];
+                const word = words[availableCount] || String(availableCount);
+                const el1 = document.getElementById('home-title-count');
+                const el2 = document.getElementById('home-pillar-count');
+                if (el1) el1.textContent = `${availableCount} title${availableCount !== 1 ? 's' : ''}`;
+                if (el2) el2.textContent = `${word} Title${availableCount !== 1 ? 's' : ''}`;
+            }
+
             allCovers = records
                 .filter(r => getAttachmentUrl(r.fields['Cover Photo']))
                 .map(r => ({

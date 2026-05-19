@@ -179,9 +179,8 @@
         const q = searchQuery.toLowerCase();
         const visible = allChars.filter(c => {
             const name = (c.fields['Name'] || '').toLowerCase();
-            const type = c._type; // pre-resolved clean string
             const matchesSearch = !q || name.includes(q);
-            const matchesType   = activeType === 'All' || type === activeType;
+            const matchesType   = activeType === 'All' || c._types.includes(activeType);
             return matchesSearch && matchesType;
         });
 
@@ -234,7 +233,7 @@
     // ── Filter buttons ─────────────────────────────────────────
     function buildFilters(chars) {
         const types = ['All', ...new Set(
-            chars.map(c => c._type).filter(Boolean).sort()
+            chars.flatMap(c => c._types).filter(Boolean).sort()
         )];
 
         filtersEl.innerHTML = types.map(t => `
@@ -284,6 +283,8 @@
                     /character.?type.*name/i,
                     /type/i
                 );
+                // Split into individual types for filtering (e.g. "Bird, Animal" → ["Bird", "Animal"])
+                r._types = r._type ? r._type.split(',').map(t => t.trim()).filter(Boolean) : [];
 
                 // Books this character appears in
                 r._books = getField(f,

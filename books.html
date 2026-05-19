@@ -100,12 +100,12 @@
         let visible = 0;
         allCards.forEach(({ card, language, availability }) => {
             let show;
-            if (activeFilter === 'all') {
-                show = true;
-            } else if (activeFilter === 'Upcoming') {
+            if (activeFilter === 'Upcoming') {
                 show = availability === 'Upcoming';
+            } else if (activeFilter === 'all') {
+                show = availability !== 'Upcoming';
             } else {
-                show = language === activeFilter;
+                show = language === activeFilter && availability !== 'Upcoming';
             }
             card.classList.toggle('hidden', !show);
             if (show) visible++;
@@ -166,7 +166,8 @@
                 const bookType    = f['Book Type'] || '';
                 const price       = f['Retail Price'];
                 const authorLine  = getAuthorLine(f);
-                const isAvailable = !!(f['Synopsis (English)'] || coverUrl);
+                const isUpcoming   = availability === 'Upcoming';
+                const isAvailable = !isUpcoming && !!(f['Synopsis (English)'] || coverUrl);
                 const badge       = [bookType, language].filter(Boolean).join(' · ');
                 const badgeClass  = bookType.toLowerCase().includes('hardcover') ? 'book-type-badge book-type-badge--hardcover' : 'book-type-badge';
                 const inCart      = Cart.has(record.id);
@@ -183,9 +184,11 @@
                 const ribbonHTML = !isAvailable
                     ? `<div class="ribbon-wrap"><div class="ribbon">Soon</div></div>` : '';
 
-                const priceHTML = price
-                    ? `<p class="book-price">MVR ${price}</p>`
-                    : `<p class="book-price coming-soon">Coming Soon</p>`;
+                const priceHTML = isUpcoming
+                    ? ''
+                    : price
+                        ? `<p class="book-price">MVR ${price}</p>`
+                        : `<p class="book-price coming-soon">Coming Soon</p>`;
 
                 // Available books get two buttons side-by-side; unavailable keeps "Coming Soon"
                 const actionsHTML = isAvailable

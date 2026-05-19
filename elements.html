@@ -372,19 +372,14 @@
 
         const desc = fields['Explanation'] || '';
 
-        // "Themes in Books" holds linked record IDs → look them up in bookMap
-        // Also check "Related Stories" as a fallback for older setups
         const storyIds = cleanIds(fields['Themes in Books'] || fields['Related Stories'] || []);
-
-        // "Related Characters" holds linked record IDs → look them up in charMap
         const charIds  = cleanIds(fields['Related Characters'] || []);
 
-        // Build story tags — use bookMap for the modal trigger, fall back gracefully
         const storyHTML = storyIds.length
             ? storyIds.map(id => {
                 const b = bookMap[id];
                 if (b) return `<button type="button" class="detail-story-tag detail-link" data-book-id="${b.id}">${b.title}</button>`;
-                return ''; // skip IDs we can't resolve
+                return '';
               }).filter(Boolean).join('') || `<span class="detail-none">—</span>`
             : `<span class="detail-none">—</span>`;
 
@@ -421,22 +416,16 @@
             ${relatedSection}
         `;
 
-        // Trigger small constellation animations (star twinkle + line redraw)
         (function animateConstellation(containerEl){
             const wrap = containerEl.querySelector('.theme-constellation');
             if (!wrap) return;
             const svg = wrap.querySelector('svg');
             if (!svg) return;
-
-            // animate star circles with random delays
-            const stars = svg.querySelectorAll('circle');
-            stars.forEach((s, i) => {
+            svg.querySelectorAll('circle').forEach((s, i) => {
                 const dur = 1.6 + Math.random() * 1.4;
                 s.style.animation = `twinkle ${dur}s infinite`;
                 s.style.animationDelay = `${Math.random() * 0.8}s`;
             });
-
-            // restart line draw
             const path = svg.querySelector('.const-line');
             if (path) {
                 path.style.animation = 'none';
@@ -481,7 +470,6 @@
                 const coverField = f['Cover Photo'];
                 bookMap[r.id] = {
                     id:        r.id,
-                    // Title may be a lookup array — take the first clean (non-ID) value only
                     title:     (Array.isArray(f['Title'])
                                     ? f['Title'].map(v => String(v).trim()).find(v => v && !REC_PAT.test(v))
                                     : f['Title'])
@@ -494,18 +482,17 @@
                     author:    authors === illustrators ? authors : [authors, illustrators].filter(Boolean).join(' / '),
                 };
             });
+
             charRecords.forEach(r => {
                 const f = r.fields;
                 const imgField = f['Image'];
                 const imgUrl = imgField && Array.isArray(imgField) && imgField.length ? imgField[0].url : null;
 
-                // Resolve linked fields the same way characters.html does
                 function getCharField(...keys) {
                     for (const k of keys) {
                         const v = cleanNames(Array.isArray(f[k]) ? f[k] : f[k] ? [f[k]] : []);
                         if (v.length) return v.join(', ');
                     }
-                    // Also try pattern-matched lookup fields
                     const pattern = new RegExp(keys[0].replace(/\s/g,'.*'), 'i');
                     for (const key of Object.keys(f)) {
                         if (pattern.test(key)) {
@@ -589,7 +576,6 @@
                 themesLeft.appendChild(block);
             });
 
-            // Auto-select a random theme so the panel is never empty
             const tags = Array.from(themesLeft.querySelectorAll('.theme-tag'));
             if (tags.length) {
                 const randomTag = tags[Math.floor(Math.random() * tags.length)];

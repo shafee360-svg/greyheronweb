@@ -83,7 +83,7 @@
         <div class="site-footer__contact">
           <h4>Contact</h4>
           <p>Order books or ask questions via WhatsApp.</p>
-          <a href="https://wa.me/YOURNUMBER" class="btn-outline-light">WhatsApp Us</a>
+          <a href="https://wa.me/9609387095" class="btn-outline-light" target="_blank" rel="noopener">WhatsApp Us</a>
         </div>
       </div>
 

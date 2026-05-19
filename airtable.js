@@ -25,10 +25,12 @@ const AIRTABLE_TOKEN = IS_LOCAL_AIRTABLE ? getLocalAirtableToken() : null;
 
 // ── Table names (must match exactly) ──
 const TABLES = {
-  books:      'All Books',
-  characters: 'Characters',
-  themes:     'Themes',
-  feedback:   'Feedback',
+  books:          'All Books',
+  characters:     'Characters',
+  themes:         'Themes',
+  characterTypes: 'Character Type',
+  feedback:       'Feedback',
+  aboutPage:      'about page',
 };
 
 // ── View IDs — locks each fetch to the correct filtered view ──
