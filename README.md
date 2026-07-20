@@ -24,7 +24,8 @@ Static website for **Grey Heron Books**, a Maldivian folklore book series by Sha
 ### `airtable.js`
 Airtable API integration — the site's data source. Included on every page that needs live data.
 
-- **`AIRTABLE_TOKEN`** — personal access token (hardcoded; keep private)
+- In production, requests go through the Netlify serverless proxy (`netlify/functions/airtable-proxy.js`), which holds the token server-side via environment variables.
+- In local development, requests go directly to the Airtable API using a token read from `localStorage` (`greyHeronAirtableToken`) — see "Running Locally" below.
 - **`BASE_ID`** — Airtable base ID
 - **`TABLES`** — maps friendly names to exact Airtable table names: `All Books`, `Characters`, `Themes`, `Feedback`
 - **`VIEWS`** — view IDs that filter/sort each table fetch
@@ -73,6 +74,9 @@ Book object shape for `Cart.add()`:
 
 ### `gh-extras.js`
 Extra UI features — edit mode, palette/motif/hero switching, and other enhancements.
+
+### `gh-scroll.js`
+Scroll-driven motion, included on every page. Zooms the hero away in 3D as it scrolls past, fades/rises each page's main content section into view the first time it's scrolled to, and drifts decorative motifs at different depths (parallax). Fully inert under `prefers-reduced-motion`; parallax is softened on touch devices. Exposes `window.GH_SCROLL.registerParallax(el, speed)` so future illustration layers can join the same depth system.
 
 ---
 

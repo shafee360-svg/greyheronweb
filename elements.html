@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>document.documentElement.classList.add('js');</script>
     <title>Folklore Themes | Folktales of the Maldives</title>
     <link rel="stylesheet" href="style.css?v=3">
     <link rel="stylesheet" href="home-redesign.css?v=2">
@@ -10,6 +11,7 @@
     <script src="airtable.js?v=3"></script>
     <script src="cart.js?v=1"></script>
     <script src="gh-extras.js?v=1"></script>
+    <script src="gh-scroll.js?v=1"></script>
 </head>
 <body class="home-redesign" data-palette="ocean" data-motifs="subtle" data-screen-label="Themes">
 
@@ -18,9 +20,9 @@
     <main>
         <section class="hr-page-hero" data-comment-anchor="themes-hero">
             <div class="hr-hero__atmosphere"></div>
-            <svg class="hr-corner hr-corner--bl" aria-hidden="true"><use href="#m-palm"/></svg>
-            <svg class="hr-corner hr-corner--br" aria-hidden="true"><use href="#m-palm"/></svg>
-            <svg class="hr-watermark" aria-hidden="true"><use href="#m-heron"/></svg>
+            <svg class="hr-corner hr-corner--bl" data-gh-depth="0.06" aria-hidden="true"><use href="#m-palm"/></svg>
+            <svg class="hr-corner hr-corner--br" data-gh-depth="0.06" aria-hidden="true"><use href="#m-palm"/></svg>
+            <svg class="hr-watermark" data-gh-depth="0.03" aria-hidden="true"><use href="#m-heron"/></svg>
 
             <div class="hr-page-hero__inner">
                 <div class="hr-rule">
@@ -42,7 +44,7 @@
 
         <div class="themes-stats" id="themes-stats"></div>
 
-        <div class="themes-dashboard">
+        <div class="themes-dashboard gh-reveal">
 
             <!-- Left: grouped theme tags -->
             <div class="themes-left" id="themes-left">

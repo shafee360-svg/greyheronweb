@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>document.documentElement.classList.add('js');</script>
     <title>Folktales of the Maldives | Grey Heron Books</title>
     <link rel="stylesheet" href="style.css?v=3">
     <link rel="stylesheet" href="home-redesign.css?v=2">
@@ -17,6 +18,7 @@
       }/*EDITMODE-END*/;
     </script>
     <script src="gh-extras.js?v=1"></script>
+    <script src="gh-scroll.js?v=1"></script>
 </head>
 <body class="home-redesign" data-palette="manuscript" data-motifs="bold" data-hero="collage" data-screen-label="Home">
 
@@ -31,10 +33,10 @@
 
             <div class="hr-hero__atmosphere"></div>
 
-            <svg class="hr-corner hr-corner--bl" aria-hidden="true"><use href="#m-palm"/></svg>
-            <svg class="hr-corner hr-corner--br" aria-hidden="true"><use href="#m-palm"/></svg>
+            <svg class="hr-corner hr-corner--bl" data-gh-depth="0.06" aria-hidden="true"><use href="#m-palm"/></svg>
+            <svg class="hr-corner hr-corner--br" data-gh-depth="0.06" aria-hidden="true"><use href="#m-palm"/></svg>
 
-            <svg class="hr-watermark" aria-hidden="true"><use href="#m-heron"/></svg>
+            <svg class="hr-watermark" data-gh-depth="0.03" aria-hidden="true"><use href="#m-heron"/></svg>
 
             <div class="hr-hero__inner">
 
@@ -76,7 +78,7 @@
 
         </section>
 
-        <section class="home-poem">
+        <section class="home-poem gh-reveal">
             <p>The Maldives is a tiny big country —<br>
             a scatter of small islands<br>
             afloat upon a shining sea,<br>
@@ -91,11 +93,11 @@
              ============================================================ -->
         <section class="hr-manifesto" data-comment-anchor="home-manifesto">
 
-            <svg class="hr-manifesto__leaf hr-manifesto__leaf--l" aria-hidden="true"><use href="#m-leaf"/></svg>
-            <svg class="hr-manifesto__leaf hr-manifesto__leaf--r" aria-hidden="true"><use href="#m-leaf"/></svg>
-            <svg class="hr-heron-mark" aria-hidden="true"><use href="#m-heron"/></svg>
+            <svg class="hr-manifesto__leaf hr-manifesto__leaf--l" data-gh-depth="0.05" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-manifesto__leaf hr-manifesto__leaf--r" data-gh-depth="0.05" aria-hidden="true"><use href="#m-leaf"/></svg>
+            <svg class="hr-heron-mark" data-gh-depth="0.03" aria-hidden="true"><use href="#m-heron"/></svg>
 
-            <div class="hr-manifesto__inner">
+            <div class="hr-manifesto__inner gh-reveal">
 
                 <div class="hr-rule" style="color: var(--hr-gold);">
                     <span class="hr-rule__line"></span>
@@ -159,12 +161,12 @@
              ============================================================ -->
         <section class="hr-feedback" data-comment-anchor="home-feedback">
 
-            <svg class="hr-sb hr-sb--1" aria-hidden="true"><use href="#m-coral"/></svg>
-            <svg class="hr-sb hr-sb--2" aria-hidden="true"><use href="#m-shell-scallop"/></svg>
-            <svg class="hr-sb hr-sb--3" aria-hidden="true"><use href="#m-shell-conch"/></svg>
-            <svg class="hr-sb hr-sb--4" aria-hidden="true"><use href="#m-coral"/></svg>
+            <svg class="hr-sb hr-sb--1" data-gh-depth="0.05" aria-hidden="true"><use href="#m-coral"/></svg>
+            <svg class="hr-sb hr-sb--2" data-gh-depth="0.07" aria-hidden="true"><use href="#m-shell-scallop"/></svg>
+            <svg class="hr-sb hr-sb--3" data-gh-depth="0.04" aria-hidden="true"><use href="#m-shell-conch"/></svg>
+            <svg class="hr-sb hr-sb--4" data-gh-depth="0.06" aria-hidden="true"><use href="#m-coral"/></svg>
 
-            <div class="hr-feedback__inner">
+            <div class="hr-feedback__inner gh-reveal">
 
                 <div class="hr-rule" style="color: var(--hr-gold);">
                     <span class="hr-rule__line"></span>
@@ -353,6 +355,49 @@
         } catch (err) {
             stage.innerHTML = '';
             console.error('Feedback carousel error:', err.message);
+        }
+    })();
+
+    // ── Floating character cutouts (provisional source: Characters table,
+    //    until a dedicated illustration-assets table exists) ──
+    (async () => {
+        const slots = [
+            { sel: '.hr-hero',      cls: 'hr-char-float--hero-l',      depth: 0.05, z: 0.0005 },
+            { sel: '.hr-hero',      cls: 'hr-char-float--hero-r',      depth: 0.07, z: 0.0006 },
+            { sel: '.hr-manifesto', cls: 'hr-char-float--manifesto-l', depth: 0.04, z: 0.00045 },
+            { sel: '.hr-manifesto', cls: 'hr-char-float--manifesto-r', depth: 0.06, z: 0.00055 },
+        ];
+
+        function getThumbUrl(field) {
+            if (!field || !Array.isArray(field) || !field.length) return null;
+            const att = field[0];
+            return (att.thumbnails && att.thumbnails.large && att.thumbnails.large.url) || att.url;
+        }
+
+        try {
+            const records = await fetchAllRecords(TABLES.characters);
+            const withArt = records
+                .filter(r => getThumbUrl(r.fields['Image']))
+                .map(r => ({ url: getThumbUrl(r.fields['Image']), name: r.fields['Name'] || 'Character' }));
+
+            if (!withArt.length) return;
+
+            const chosen = [...withArt].sort(() => Math.random() - 0.5).slice(0, slots.length);
+
+            chosen.forEach((char, i) => {
+                const slot = slots[i];
+                const host = document.querySelector(slot.sel);
+                if (!host) return;
+                const img = document.createElement('img');
+                img.src = char.url;
+                img.alt = '';
+                img.loading = 'lazy';
+                img.className = `hr-char-float ${slot.cls}`;
+                host.appendChild(img);
+                if (window.GH_SCROLL) window.GH_SCROLL.registerParallax(img, slot.depth, slot.z);
+            });
+        } catch (err) {
+            console.error('Character floats error:', err.message);
         }
     })();
     </script>

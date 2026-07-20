@@ -484,7 +484,7 @@
   margin: 0;
 }
 .hr-title em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 400;
   color: var(--hr-accent);
   display: block;
@@ -790,6 +790,7 @@
    ============================================================ */
 .hr-manifesto {
   position: relative;
+  perspective: 1200px;
   background: linear-gradient(180deg,
     var(--hr-paper) 0%,
     color-mix(in oklab, var(--hr-paper-2) 90%, var(--hr-paper)) 100%);
@@ -829,7 +830,7 @@
 }
 
 .hr-section-title em {
-  font-style: italic;
+  font-style: normal;
   color: var(--hr-accent);
 }
 
@@ -871,7 +872,7 @@
   float: left;
   margin: 0.05em 0.18em 0 0;
   color: var(--hr-accent);
-  font-style: italic;
+  font-style: normal;
 }
 
 .hr-manifesto__body p {
@@ -1011,6 +1012,72 @@
 
 
 
+
+/* ============================================================
+   SCROLL MOTION — hero zoom-away, reveal-on-scroll, parallax
+   Driven by gh-scroll.js. The .js gate means anyone without
+   JavaScript (or if the script fails to load) simply sees every
+   section fully visible and static — nothing ever hides behind
+   a script that didn't run.
+   ============================================================ */
+.hr-hero, .hr-page-hero { perspective: 1200px; }
+.hr-hero__inner, .hr-page-hero__inner { transform-origin: 50% 30%; }
+
+.js .gh-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.js .gh-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Pillar stagger, keyed off the manifesto block's own reveal */
+.js .hr-pillar {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.js .hr-manifesto__inner.is-visible .hr-pillar { opacity: 1; transform: none; }
+.js .hr-manifesto__inner.is-visible .hr-pillars .hr-pillar:nth-child(1) { transition-delay: 0.05s; }
+.js .hr-manifesto__inner.is-visible .hr-pillars .hr-pillar:nth-child(2) { transition-delay: 0.16s; }
+.js .hr-manifesto__inner.is-visible .hr-pillars .hr-pillar:nth-child(3) { transition-delay: 0.27s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .js .gh-reveal,
+  .js .hr-pillar {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .hr-hero__inner { transition: none !important; }
+}
+
+/* ============================================================
+   FLOATING CHARACTER CUTOUTS — provisional source: the existing
+   Characters table, until a dedicated illustration-assets table
+   exists. Injected by index.html; parallax via GH_SCROLL.
+   ============================================================ */
+.hr-char-float {
+  position: absolute;
+  z-index: 1;
+  max-height: clamp(90px, 12vw, 150px);
+  width: auto;
+  filter: drop-shadow(0 10px 18px rgba(20,12,4,0.25));
+  opacity: 0.92;
+  pointer-events: none;
+}
+.hr-char-float--hero-l { left: 4%;  top: 20%; transform: rotate(-6deg); }
+.hr-char-float--hero-r { right: 4%; top: 24%; transform: rotate(6deg); }
+.hr-char-float--manifesto-l { left: 2%;  bottom: 10%; transform: rotate(-4deg); }
+.hr-char-float--manifesto-r { right: 3%; top: 8%;    transform: rotate(5deg); }
+
+@media (max-width: 900px) {
+  .hr-char-float { display: none; }
+}
 
 /* ── Tweaks panel styling ─────────────────────────────────── */
 .hr-tweaks {
